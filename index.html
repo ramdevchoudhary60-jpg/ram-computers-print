@@ -305,6 +305,48 @@ footer{
     padding:17px
   }
 }
+
+/* ADMIN STATUS SIDEBAR */
+.admin-layout{
+  display:grid;
+  grid-template-columns:210px minmax(0,1fr);
+  gap:18px;
+  align-items:start;
+}
+.admin-sidebar{
+  background:#fff;
+  border:1px solid #e5e9f0;
+  border-radius:16px;
+  padding:14px;
+  position:sticky;
+  top:90px;
+}
+.admin-sidebar-title{
+  font-size:12px;
+  font-weight:800;
+  color:#667085;
+  padding:8px 10px;
+  margin-bottom:5px;
+}
+.status-filter{
+  width:100%;
+  text-align:left;
+  background:#fff;
+  color:#344054;
+  margin-bottom:5px;
+  padding:11px 12px;
+}
+.status-filter:hover{background:#f2f4f7}
+.status-filter.active{
+  background:#155eef;
+  color:#fff;
+}
+.admin-content{min-width:0}
+@media(max-width:720px){
+  .admin-layout{grid-template-columns:1fr}
+  .admin-sidebar{position:static}
+}
+
 </style>
 
 </head>
@@ -620,27 +662,74 @@ footer{
 
   <!-- ADMIN -->
 
-  <section
-    id="adminView"
-    class="hidden">
+  <section id="adminView" class="hidden">
 
-    <div class="card">
+  <div class="admin-layout">
 
-      <h1>
-        Admin Panel
-      </h1>
+    <aside class="admin-sidebar">
 
-      <p class="muted">
-        Manage all print requests here.
-      </p>
+      <div class="admin-sidebar-title">
+        REQUEST STATUS
+      </div>
 
-      <div id="adminRequests">
-        Loading...
+      <button class="status-filter active"
+        onclick="filterAdminRequests('All',this)">
+        All Requests
+      </button>
+
+      <button class="status-filter"
+        onclick="filterAdminRequests('Pending',this)">
+        Pending
+      </button>
+
+      <button class="status-filter"
+        onclick="filterAdminRequests('Processing',this)">
+        Processing
+      </button>
+
+      <button class="status-filter"
+        onclick="filterAdminRequests('Ready',this)">
+        Ready
+      </button>
+
+      <button class="status-filter"
+        onclick="filterAdminRequests('Out for Delivery',this)">
+        Out for Delivery
+      </button>
+
+      <button class="status-filter"
+        onclick="filterAdminRequests('Delivered',this)">
+        Delivered
+      </button>
+
+      <button class="status-filter"
+        onclick="filterAdminRequests('Cancelled',this)">
+        Cancelled
+      </button>
+
+    </aside>
+
+    <div class="admin-content">
+
+      <div class="card">
+
+        <h1>Admin Panel</h1>
+
+        <p class="muted">
+          Manage all print requests here.
+        </p>
+
+        <div id="adminRequests">
+          Loading...
+        </div>
+
       </div>
 
     </div>
 
-  </section>
+  </div>
+
+</section>
 
 </main>
 
@@ -1697,6 +1786,9 @@ async function downloadFile(encoded){
    ADMIN PANEL
 ========================= */
 
+let allAdminRequests = [];
+let currentAdminFilter = "All";
+
 async function loadAdmin(){
 
   const {data,error} =
@@ -1707,30 +1799,62 @@ async function loadAdmin(){
       )
       .order(
         "created_at",
-        {
-          ascending:false
-        }
+        {ascending:false}
       );
-
 
   if(error){
 
-    $("adminRequests").textContent =
-      error.message;
+    $("adminRequests").innerHTML =
+      `<div class="notice error">
+        ${escapeHtml(error.message)}
+      </div>`;
 
     return;
   }
 
+  allAdminRequests = data || [];
+
+  renderAdminRequests();
+}
+
+
+function filterAdminRequests(status,button){
+
+  currentAdminFilter = status;
+
+  document
+    .querySelectorAll(".status-filter")
+    .forEach(btn => btn.classList.remove("active"));
+
+  if(button){
+    button.classList.add("active");
+  }
+
+  renderAdminRequests();
+}
+
+
+function renderAdminRequests(){
+
+  let data = allAdminRequests;
+
+  if(currentAdminFilter !== "All"){
+
+    data = allAdminRequests.filter(r =>
+      (r.status || "Pending") === currentAdminFilter
+    );
+
+  }
 
   if(!data.length){
 
     $("adminRequests").innerHTML =
-      "<p class='muted'>No requests yet.</p>";
+      `<div class="notice">
+        इस status में कोई request नहीं है।
+      </div>`;
 
     return;
   }
-
-
 
   $("adminRequests").innerHTML = `
 
@@ -1739,164 +1863,63 @@ async function loadAdmin(){
       <table>
 
         <tr>
-
           <th>Request</th>
-
           <th>Customer</th>
-
           <th>Service</th>
-
           <th>File</th>
-
           <th>Delivery</th>
-
           <th>Address</th>
-
           <th>Status</th>
-
           <th>Remark</th>
-
           <th>Save</th>
-
         </tr>
-
 
         ${data.map(r => `
 
           <tr>
 
-
-            <!-- REQUEST -->
-
             <td>
-
-              <b>
-                ${escapeHtml(
-                  r.request_id
-                )}
-              </b>
-
+              <b>${escapeHtml(r.request_id)}</b>
               <br>
-
               <small>
-
-                ${new Date(
-                  r.created_at
-                ).toLocaleString(
-                  "en-IN"
-                )}
-
+                ${new Date(r.created_at).toLocaleString("en-IN")}
               </small>
-
             </td>
 
-
-
-            <!-- CUSTOMER -->
-
             <td>
-
-              ${escapeHtml(
-                r.profiles?.full_name ||
-                "-"
-              )}
-
+              ${escapeHtml(r.profiles?.full_name || "-")}
               <br>
-
-              ${escapeHtml(
-                r.profiles?.mobile ||
-                "-"
-              )}
-
+              ${escapeHtml(r.profiles?.mobile || "-")}
             </td>
 
-
-
-            <!-- SERVICE -->
-
             <td>
-
-              ${escapeHtml(
-                r.services?.name ||
-                "-"
-              )}
-
+              ${escapeHtml(r.services?.name || "-")}
             </td>
 
-
-
-            <!-- FILE -->
-
             <td>
-
               <button
                 class="link"
-                onclick="downloadFile(
-                  '${encodeURIComponent(
-                    r.file_path
-                  )}'
-                )">
-
+                onclick="downloadFile('${encodeURIComponent(r.file_path)}')">
                 Open
-
               </button>
-
             </td>
 
+            <td>
+              <b>${escapeHtml(r.delivery_type || "Pickup")}</b>
+              ${
+                r.delivery_pincode
+                ? `<br><small>Pincode: ${escapeHtml(r.delivery_pincode)}</small>`
+                : ""
+              }
+            </td>
 
-
-            <!-- DELIVERY -->
+            <td style="min-width:280px;max-width:350px">
+              ${escapeHtml(r.delivery_address || "Shop Pickup")}
+            </td>
 
             <td>
 
-              <b>
-
-                ${escapeHtml(
-                  r.delivery_type ||
-                  "Pickup"
-                )}
-
-              </b>
-
-              <br>
-
-              <small>
-
-                Pincode:
-                ${escapeHtml(
-                  r.delivery_pincode ||
-                  "-"
-                )}
-
-              </small>
-
-            </td>
-
-
-
-            <!-- ADDRESS -->
-
-            <td
-              style="
-                min-width:280px;
-                max-width:350px;
-              ">
-
-              ${escapeHtml(
-                r.delivery_address ||
-                "Shop Pickup"
-              )}
-
-            </td>
-
-
-
-            <!-- STATUS -->
-
-            <td>
-
-              <select
-                id="st_${r.id}">
+              <select id="st_${r.id}">
 
                 ${[
                   "Pending",
@@ -1908,12 +1931,9 @@ async function loadAdmin(){
                 ].map(x => `
 
                   <option
-                    ${x === r.status
-                      ? "selected"
-                      : ""}>
-
+                    value="${x}"
+                    ${x === r.status ? "selected" : ""}>
                     ${x}
-
                   </option>
 
                 `).join("")}
@@ -1922,38 +1942,22 @@ async function loadAdmin(){
 
             </td>
 
-
-
-            <!-- REMARK -->
-
             <td>
 
               <input
                 id="rm_${r.id}"
-                value="${escapeHtml(
-                  r.remark || ""
-                )}"
+                value="${escapeHtml(r.remark || "")}"
                 placeholder="Remark">
 
             </td>
 
-
-
-            <!-- SAVE -->
-
             <td>
 
-              <button
-                onclick="updateRequest(
-                  ${r.id}
-                )">
-
+              <button onclick="updateRequest(${r.id})">
                 Save
-
               </button>
 
             </td>
-
 
           </tr>
 
@@ -1966,7 +1970,6 @@ async function loadAdmin(){
   `;
 
 }
-
 
 
 /* =========================
