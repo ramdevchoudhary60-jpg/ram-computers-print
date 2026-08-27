@@ -513,69 +513,125 @@ footer{
   overflow:hidden;
 }
 
+.admin-request-wrap{
+  width:100%;
+  overflow-x:auto;
+  border:1px solid #d9dee7;
+  border-radius:10px;
+  background:#fff;
+}
+
 .admin-request-table{
   width:100%;
+  min-width:980px;
   table-layout:fixed;
   border-collapse:collapse;
+  margin:0;
 }
 
 .admin-request-table th,
 .admin-request-table td{
-  padding:8px 6px;
+  border-right:1px solid #d9dee7;
+  border-bottom:1px solid #d9dee7;
+  padding:9px 7px;
+  text-align:left;
+  vertical-align:middle;
   font-size:12px;
   line-height:1.25;
-  overflow-wrap:anywhere;
-  word-break:break-word;
+  color:#172033;
 }
 
 .admin-request-table th{
-  white-space:normal;
+  background:#f5f7fa;
+  color:#475467;
+  font-weight:800;
+  white-space:nowrap;
 }
 
-.admin-request-table .request-col{width:11%}
-.admin-request-table .customer-col{width:13%}
-.admin-request-table .service-col{width:10%}
+.admin-request-table td{
+  background:#fff;
+}
+
+.admin-request-table tr:last-child td{
+  border-bottom:0;
+}
+
+.admin-request-table th:last-child,
+.admin-request-table td:last-child{
+  border-right:0;
+}
+
+.admin-request-table tbody tr:hover td{
+  background:#f9fbff;
+}
+
+.admin-request-table .request-col{width:12%}
+.admin-request-table .customer-col{width:12%}
+.admin-request-table .service-col{width:11%}
 .admin-request-table .file-col{width:7%}
 .admin-request-table .delivery-col{width:12%}
 .admin-request-table .amount-col{width:7%}
-.admin-request-table .address-col{width:16%}
+.admin-request-table .address-col{width:14%}
 .admin-request-table .status-col{width:9%}
 .admin-request-table .remark-col{width:10%}
-.admin-request-table .save-col{width:5%}
+.admin-request-table .save-col{width:6%}
+
+.admin-request-table .request-cell,
+.admin-request-table .customer-cell,
+.admin-request-table .service-cell,
+.admin-request-table .delivery-cell{
+  white-space:nowrap;
+}
+
+.admin-request-table .address-cell,
+.admin-request-table .remark-cell{
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
 
 .admin-request-table select,
 .admin-request-table input{
   width:100%;
   min-width:0;
-  padding:7px 6px;
+  height:36px;
+  padding:6px 7px;
   font-size:12px;
-  border-radius:8px;
+  border:1px solid #cfd6e2;
+  border-radius:7px;
+  background:#fff;
 }
 
 .admin-request-table button{
-  padding:8px 7px;
-  font-size:11px;
   width:100%;
+  height:36px;
+  padding:6px 7px;
+  font-size:12px;
+  border-radius:7px;
 }
 
 .admin-request-table .link{
   width:auto;
+  height:auto;
+  padding:2px 4px;
+  white-space:nowrap;
 }
 
-@media(max-width:900px){
-  .admin-layout{
-    grid-template-columns:180px minmax(0,1fr);
-  }
+@media(max-width:1050px){
   .admin-request-table th,
   .admin-request-table td{
-    padding:7px 4px;
+    padding:8px 5px;
     font-size:11px;
   }
-  .admin-request-table button,
+
+  .admin-request-table{
+    min-width:940px;
+  }
+
   .admin-request-table select,
-  .admin-request-table input{
+  .admin-request-table input,
+  .admin-request-table button{
+    height:34px;
     font-size:11px;
-    padding:6px 4px;
   }
 }
 
@@ -2248,7 +2304,7 @@ async function loadMyRequests(){
 
   $("myRequests").innerHTML = `
 
-    <div style="overflow:auto">
+    <div class="admin-request-wrap">
 
       <table class="admin-request-table">
 
@@ -2676,21 +2732,19 @@ function renderAdminRequests(){
 
           <tr>
 
-            <td>
+            <td class="request-cell">
               <b>${escapeHtml(r.request_id)}</b>
               <br>
-              <small>
-                ${new Date(r.created_at).toLocaleString("en-IN")}
-              </small>
+              <small>${new Date(r.created_at).toLocaleString("en-IN")}</small>
             </td>
 
-            <td>
+            <td class="customer-cell">
               ${escapeHtml(r.profiles?.full_name || "-")}
               <br>
               ${escapeHtml(r.profiles?.mobile || "-")}
             </td>
 
-            <td>
+            <td class="service-cell">
               ${escapeHtml(r.services?.name || "-")}
             </td>
 
@@ -2702,7 +2756,7 @@ function renderAdminRequests(){
               </button>
             </td>
 
-            <td>
+            <td class="delivery-cell">
               <b>${escapeHtml(r.delivery_type || "Pickup")}</b>
               ${
                 r.delivery_pincode
@@ -2711,7 +2765,7 @@ function renderAdminRequests(){
               }
             </td>
 
-            <td>
+            <td style="white-space:nowrap">
               ${
                 Number.isFinite(Number(r.total_amount))
                   ? "₹" + Number(r.total_amount).toFixed(0)
@@ -2719,7 +2773,7 @@ function renderAdminRequests(){
               }
             </td>
 
-            <td>
+            <td class="address-cell">
               ${escapeHtml(r.delivery_address || "Shop Pickup")}
             </td>
 
@@ -2748,7 +2802,7 @@ function renderAdminRequests(){
 
             </td>
 
-            <td>
+            <td class="remark-cell">
 
               <input
                 id="rm_${r.id}"
