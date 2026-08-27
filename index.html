@@ -306,6 +306,168 @@ footer{
   }
 }
 
+
+/* PROFESSIONAL WALLET POPUP */
+.wallet-trigger-row{
+  margin-top:18px;
+}
+.wallet-trigger{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:13px;
+  text-align:left;
+  padding:14px 16px;
+  background:#fff;
+  color:#172033;
+  border:1px solid #dbe3ef;
+  box-shadow:0 5px 18px #1018280a;
+}
+.wallet-trigger:hover{
+  border-color:#155eef;
+  box-shadow:0 7px 22px #155eef12;
+}
+.wallet-trigger-icon{
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#eef4ff;
+  color:#155eef;
+  font-size:20px;
+  font-weight:800;
+  flex:0 0 42px;
+}
+.wallet-trigger b{
+  display:block;
+  font-size:15px;
+}
+.wallet-trigger small{
+  display:block;
+  margin-top:3px;
+  color:#667085;
+  font-size:12px;
+  font-weight:500;
+}
+.wallet-trigger-arrow{
+  margin-left:auto;
+  font-size:25px;
+  color:#98a2b3;
+}
+
+.wallet-modal{
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  background:#10182866;
+  backdrop-filter:blur(3px);
+}
+.wallet-modal.hidden{
+  display:none!important;
+}
+.wallet-modal-card{
+  width:min(430px,100%);
+  background:#fff;
+  border-radius:20px;
+  padding:22px;
+  box-shadow:0 22px 60px #1018282e;
+  border:1px solid #e5e9f0;
+}
+.wallet-modal-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:15px;
+}
+.wallet-modal-kicker{
+  font-size:11px;
+  font-weight:800;
+  color:#667085;
+  letter-spacing:.08em;
+}
+.wallet-modal-head h2{
+  margin:4px 0 0;
+  font-size:23px;
+}
+.wallet-close{
+  width:38px;
+  height:38px;
+  padding:0;
+  border-radius:10px;
+  background:#f2f4f7;
+  color:#344054;
+  font-size:24px;
+  line-height:1;
+}
+.wallet-close:hover{
+  background:#eaecf0;
+}
+.wallet-balance-panel{
+  margin-top:18px;
+  padding:20px;
+  border-radius:16px;
+  background:linear-gradient(135deg,#eef4ff,#f8fbff);
+  border:1px solid #dbe7ff;
+}
+.wallet-balance-label{
+  color:#667085;
+  font-size:12px;
+  font-weight:700;
+}
+.wallet-modal-balance{
+  margin-top:4px;
+  font-size:34px;
+  line-height:1.1;
+  font-weight:800;
+  color:#155eef;
+}
+.wallet-modal-points{
+  margin-top:8px;
+  color:#667085;
+  font-size:13px;
+}
+.wallet-modal-points span{
+  margin:0 5px;
+}
+.wallet-add-section{
+  margin-top:20px;
+}
+.wallet-add-section label{
+  margin-top:0;
+}
+.wallet-input-row{
+  display:flex;
+  align-items:center;
+  border:1px solid #d0d5dd;
+  border-radius:10px;
+  overflow:hidden;
+  background:#fff;
+}
+.wallet-input-row:focus-within{
+  border-color:#155eef;
+  box-shadow:0 0 0 3px #155eef14;
+}
+.wallet-input-row>span{
+  padding-left:13px;
+  font-weight:700;
+  color:#667085;
+}
+.wallet-input-row input{
+  border:0;
+  border-radius:0;
+  box-shadow:none!important;
+}
+.wallet-add-btn{
+  width:100%;
+  margin-top:11px;
+}
+
 /* ADMIN STATUS SIDEBAR */
 .admin-layout{
   display:grid;
@@ -493,16 +655,46 @@ footer{
       </p>
 
       <!-- WALLET -->
-      <div class="wallet-box">
-        <div class="wallet-grid">
-          <div>
-            <div style="font-size:13px;color:#667085;font-weight:800">MY WALLET</div>
-            <div class="wallet-balance">₹<span id="walletAmount">0</span></div>
-            <div class="wallet-points">⭐ <b id="walletPoints">0</b> Points &nbsp;•&nbsp; ₹1 = 1 Point</div>
+      <div class="wallet-trigger-row">
+        <button class="wallet-trigger" onclick="openWalletModal()">
+          <span class="wallet-trigger-icon">₹</span>
+          <span>
+            <b>My Wallet</b>
+            <small>Balance: ₹<span id="walletAmount">0</span> • <span id="walletPoints">0</span> Points</small>
+          </span>
+          <span class="wallet-trigger-arrow">›</span>
+        </button>
+      </div>
+
+      <div id="walletModal" class="wallet-modal hidden" onclick="closeWalletOnBackdrop(event)">
+        <div class="wallet-modal-card" role="dialog" aria-modal="true" aria-labelledby="walletModalTitle">
+
+          <div class="wallet-modal-head">
+            <div>
+              <div class="wallet-modal-kicker">ACCOUNT WALLET</div>
+              <h2 id="walletModalTitle">My Wallet</h2>
+            </div>
+            <button class="wallet-close" onclick="closeWalletModal()" aria-label="Close">×</button>
           </div>
-          <button onclick="addMoney()">+ Add Money</button>
+
+          <div class="wallet-balance-panel">
+            <div class="wallet-balance-label">Available Balance</div>
+            <div class="wallet-modal-balance">₹<span id="walletModalAmount">0</span></div>
+            <div class="wallet-modal-points">⭐ <b id="walletModalPoints">0</b> Points <span>•</span> ₹1 = 1 Point</div>
+          </div>
+
+          <div class="wallet-add-section">
+            <label for="walletAddAmount">Add Money</label>
+            <div class="wallet-input-row">
+              <span>₹</span>
+              <input id="walletAddAmount" type="number" min="1" step="1" placeholder="Enter amount">
+            </div>
+            <button class="wallet-add-btn" onclick="addMoney()">Continue to Payment</button>
+          </div>
+
+          <div id="walletMsg"></div>
+
         </div>
-        <div id="walletMsg"></div>
       </div>
 
       <h2 style="margin-top:24px">
@@ -1132,34 +1324,87 @@ async function loadWallet(){
 
   if(error){
     console.log("Wallet load error:",error.message);
-    $("walletPoints").textContent="0";
-    $("walletAmount").textContent="0";
+    setWalletDisplay(0);
     return;
   }
 
   const points=Number(data?.points||0);
-  $("walletPoints").textContent=points;
-  $("walletAmount").textContent=points;
+  setWalletDisplay(points);
 }
+
+
+function setWalletDisplay(points){
+
+  const amountEl = $("walletAmount");
+  const pointsEl = $("walletPoints");
+  const modalAmountEl = $("walletModalAmount");
+  const modalPointsEl = $("walletModalPoints");
+
+  if(amountEl) amountEl.textContent = points;
+  if(pointsEl) pointsEl.textContent = points;
+  if(modalAmountEl) modalAmountEl.textContent = points;
+  if(modalPointsEl) modalPointsEl.textContent = points;
+}
+
+
+function openWalletModal(){
+
+  setWalletDisplay(
+    Number($("walletPoints")?.textContent || 0)
+  );
+
+  $("walletAddAmount").value = "";
+  $("walletMsg").innerHTML = "";
+
+  $("walletModal").classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+
+  setTimeout(() => {
+    $("walletAddAmount")?.focus();
+  }, 80);
+}
+
+
+function closeWalletModal(){
+
+  $("walletModal").classList.add("hidden");
+  document.body.style.overflow = "";
+}
+
+
+function closeWalletOnBackdrop(event){
+
+  if(event.target === $("walletModal")){
+    closeWalletModal();
+  }
+}
+
 
 function addMoney(){
 
-  const amount=prompt("Kitne rupaye wallet me add karne hain?");
+  const input = $("walletAddAmount");
+  const value = Number(input.value);
 
-  if(amount===null) return;
+  if(!Number.isFinite(value) || value < 1){
 
-  const value=Number(amount);
+    msg(
+      "walletMsg",
+      "Please enter an amount of at least ₹1.",
+      "error"
+    );
 
-  if(!Number.isFinite(value)||value<=0){
-    alert("Valid amount enter karo.");
+    input.focus();
     return;
   }
 
-  alert(
-    "Razorpay payment gateway abhi connect nahi hua hai.\n\n"+
-    "Amount: ₹"+value.toFixed(2)+"\n"+
-    "Points: "+Math.floor(value)
+  const points = Math.floor(value);
+
+  msg(
+    "walletMsg",
+    `Payment gateway will process ₹${value.toFixed(2)} and add ${points} Points after successful payment.`,
+    "notice"
   );
+
 }
 
 
