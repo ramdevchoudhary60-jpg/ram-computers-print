@@ -735,9 +735,19 @@ footer{
           <input
             id="workFile"
             type="file"
-            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx">
+            accept="*/*"
+            multiple
+            onchange="handlePVCFileChange()">
+
+          <div style="margin-top:8px;font-size:12px;color:#667085">
+            PDF, JPG, JPEG, PNG, DOC, DOCX, XLS, XLSX, PSD or any other file format.
+            Maximum 2 pages/cards per request. You can upload 1 file with 2 pages
+            OR 2 separate files with 1 page/card each.
+          </div>
 
         </div>
+
+        <div id="pvcFileInfo" class="notice hidden"></div>
 
 
         <!-- DELIVERY -->
@@ -814,6 +824,15 @@ footer{
           placeholder="e.g. Please add this name to the design...">
         </textarea>
 
+
+        <div id="pvcPriceBox" class="notice" style="margin-top:14px">
+          <b>Price Summary</b>
+          <div style="margin-top:6px">
+            PVC Request (1–2 pages): ₹<span id="pvcCardAmount">70</span>
+            + Delivery: ₹<span id="pvcDeliveryAmount">0</span>
+            = <b>₹<span id="pvcTotalAmount">70</span></b>
+          </div>
+        </div>
 
         <button
           style="margin-top:12px"
@@ -1514,6 +1533,12 @@ function chooseService(id,name){
 
   toggleDeliveryFields();
 
+  $("workFile").value = "";
+  $("workFile").dataset.pageCount = "0";
+  $("workFile").dataset.fileCount = "0";
+  $("pvcFileInfo").classList.add("hidden");
+  updatePVCPrice();
+
 
   $("requestBox")
     .scrollIntoView({
@@ -1547,9 +1572,172 @@ function toggleDeliveryFields(){
   $("deliveryPincode").required =
     home;
 
+  updatePVCPrice();
 }
 
 
+
+/* =========================
+   PVC PRICING + FILE CHECK
+========================= */
+
+const PVC_REQUEST_PRICE = 70;
+const HOME_DELIVERY_PRICE = 30;
+const PICKUP_PRICE = 0;
+const PVC_MAX_PAGES = 2;
+
+function isPVCService(){
+  return String(selectedServiceName || "").trim().toLowerCase() ===
+         "pvc document print";
+}
+
+function getPVCSelectedFiles(){
+  return Array.from($("workFile")?.files || []);
+}
+
+function updatePVCPrice(){
+  if(!isPVCService()) return;
+
+  const delivery =
+    $("deliveryType")?.value === "Home Delivery"
+      ? HOME_DELIVERY_PRICE
+      : PICKUP_PRICE;
+
+  /*
+    Important:
+    1 page OR 2 pages OR 2 separate 1-page files
+    = same PVC request charge ₹70.
+  */
+  const total = PVC_REQUEST_PRICE + delivery;
+
+  $("pvcCardAmount").textContent = PVC_REQUEST_PRICE;
+  $("pvcCardCount").textContent = "1 request (up to 2 pages)";
+  $("pvcDeliveryAmount").textContent = delivery;
+  $("pvcTotalAmount").textContent = total;
+}
+
+function showPVCInfo(textValue, type="notice"){
+  const info = $("pvcFileInfo");
+  if(!info) return;
+  info.className = `notice ${type}`;
+  info.textContent = textValue;
+  info.classList.remove("hidden");
+}
+
+async function handlePVCFileChange(){
+
+  const input = $("workFile");
+  const files = getPVCSelectedFiles();
+
+  if(!files.length){
+    input.dataset.pageCount = "0";
+    input.dataset.fileCount = "0";
+    $("pvcFileInfo").classList.add("hidden");
+    updatePVCPrice();
+    return;
+  }
+
+  if(!isPVCService()){
+    return;
+  }
+
+  let totalPages = 0;
+  let unknownPageFile = false;
+
+  for(const file of files){
+
+    const name = file.name || "";
+    const isPdf =
+      file.type === "application/pdf" ||
+      /\.pdf$/i.test(name);
+
+    const isImage =
+      file.type.startsWith("image/") ||
+      /\.(jpg|jpeg|png|webp|gif|bmp|tif|tiff)$/i.test(name);
+
+    if(isImage){
+      totalPages += 1;
+      continue;
+    }
+
+    if(isPdf){
+
+      try{
+
+        showPVCInfo(`Checking ${file.name} pages...`);
+
+        const pdfjs = await import(
+          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs"
+        );
+
+        const bytes = await file.arrayBuffer();
+
+        const pdf =
+          await pdfjs.getDocument({data:bytes}).promise;
+
+        totalPages += pdf.numPages;
+
+      }catch(err){
+
+        input.value = "";
+        input.dataset.pageCount = "0";
+
+        showPVCInfo(
+          `PDF "${file.name}" की pages check नहीं हो सकीं। Valid PDF upload करें.`,
+          "error"
+        );
+
+        updatePVCPrice();
+        return;
+      }
+
+      continue;
+    }
+
+    /*
+      Other formats are accepted.
+      Their page count cannot be reliably determined in-browser.
+      Keep them accepted, but mark the count as unknown for server/shop verification.
+    */
+    unknownPageFile = true;
+    totalPages += 1;
+  }
+
+  input.dataset.pageCount = String(totalPages);
+  input.dataset.fileCount = String(files.length);
+
+  if(totalPages > PVC_MAX_PAGES){
+
+    input.value = "";
+    input.dataset.pageCount = "0";
+    input.dataset.fileCount = "0";
+
+    showPVCInfo(
+      "Maximum 2 pages/cards allowed हैं. आप 1 file में 2 pages या 2 अलग-अलग 1-page files upload कर सकते हैं.",
+      "error"
+    );
+
+    updatePVCPrice();
+    return;
+  }
+
+  if(unknownPageFile){
+
+    showPVCInfo(
+      `${files.length} file(s) selected. Maximum 2 pages/cards allowed. इस format की exact pages shop/server पर verify होंगी.`,
+      "notice"
+    );
+
+  }else{
+
+    showPVCInfo(
+      `${files.length} file(s), ${totalPages} page/card selected. PVC charge सिर्फ ₹70 है${$("deliveryType").value === "Home Delivery" ? " + ₹30 home delivery" : ""}.`,
+      "success"
+    );
+  }
+
+  updatePVCPrice();
+}
 
 /* =========================
    SUBMIT REQUEST
@@ -1557,9 +1745,11 @@ function toggleDeliveryFields(){
 
 async function submitRequest(){
 
+  const files =
+    getPVCSelectedFiles();
+
   const file =
-    $("workFile")
-      .files[0];
+    files[0];
 
 
   const deliveryType =
@@ -1602,6 +1792,50 @@ async function submitRequest(){
     return;
   }
 
+
+
+  /* PVC: MAX 2 PAGES/CARDS + FIXED ₹70 PER REQUEST */
+
+  let pvcPageCount = 1;
+  let pvcDeliveryCharge = 0;
+  let pvcTotalAmount = 0;
+
+  if(isPVCService()){
+
+    pvcPageCount =
+      Number(
+        $("workFile").dataset.pageCount ||
+        files.length
+      );
+
+    if(!Number.isInteger(pvcPageCount) || pvcPageCount < 1){
+      msg(
+        "requestMsg",
+        "File/page count could not be determined. Please select the file(s) again.",
+        "error"
+      );
+      return;
+    }
+
+    if(pvcPageCount > PVC_MAX_PAGES){
+      msg(
+        "requestMsg",
+        "Maximum 2 pages/cards allowed हैं. 1 file में 2 pages या 2 अलग-अलग 1-page files upload करें.",
+        "error"
+      );
+      return;
+    }
+
+    pvcDeliveryCharge =
+      deliveryType === "Home Delivery"
+        ? HOME_DELIVERY_PRICE
+        : PICKUP_PRICE;
+
+    // Fixed ₹70 for the complete PVC request, whether it has 1 or 2 pages.
+    pvcTotalAmount =
+      PVC_REQUEST_PRICE +
+      pvcDeliveryCharge;
+  }
 
 
   /* FILE SIZE */
@@ -1667,48 +1901,59 @@ async function submitRequest(){
 
 
 
-  /* FILE NAME */
+  /* FILE UPLOAD */
 
-  const safe =
-    file.name.replace(
-      /[^a-zA-Z0-9._-]/g,
-      "_"
-    );
+  const uploadedPaths = [];
 
+  for(const uploadFile of files){
 
-
-  /* STORAGE PATH */
-
-  const path =
-    `${currentUser.id}/${Date.now()}_${safe}`;
-
-
-
-  /* UPLOAD FILE */
-
-  const up =
-    await sb.storage
-      .from("customer-files")
-      .upload(
-        path,
-        file,
-        {
-          upsert:false
-        }
+    const safe =
+      uploadFile.name.replace(
+        /[^a-zA-Z0-9._-]/g,
+        "_"
       );
 
+    const path =
+      `${currentUser.id}/${Date.now()}_${Math.random().toString(36).slice(2,8)}_${safe}`;
 
-  if(up.error){
+    const up =
+      await sb.storage
+        .from("customer-files")
+        .upload(
+          path,
+          uploadFile,
+          {
+            upsert:false
+          }
+        );
 
-    msg(
-      "requestMsg",
-      up.error.message,
-      "error"
-    );
+    if(up.error){
 
-    return;
+      if(uploadedPaths.length){
+        await sb.storage
+          .from("customer-files")
+          .remove(uploadedPaths);
+      }
+
+      msg(
+        "requestMsg",
+        up.error.message,
+        "error"
+      );
+
+      return;
+    }
+
+    uploadedPaths.push(path);
   }
 
+  /*
+    Existing requests.file_path is kept as text.
+    For multiple files we store a JSON array of paths.
+    For one file it is also stored as a JSON array so the format is consistent.
+  */
+  const storedFilePath =
+    JSON.stringify(uploadedPaths);
 
 
   /* INSERT REQUEST */
@@ -1725,7 +1970,7 @@ async function submitRequest(){
           selectedServiceId,
 
         file_path:
-          path,
+          storedFilePath,
 
         remark:
           remark,
@@ -1741,19 +1986,29 @@ async function submitRequest(){
         delivery_pincode:
           deliveryType === "Home Delivery"
             ? deliveryPincode
-            : ""
+            : "",
+
+        pvc_card_count:
+          isPVCService() ? pvcPageCount : 0,
+
+        delivery_charge:
+          isPVCService() ? pvcDeliveryCharge : 0,
+
+        total_amount:
+          isPVCService() ? pvcTotalAmount : 0
 
       });
-
 
 
   /* DATABASE ERROR */
 
   if(ins.error){
 
-    await sb.storage
-      .from("customer-files")
-      .remove([path]);
+    if(uploadedPaths.length){
+      await sb.storage
+        .from("customer-files")
+        .remove(uploadedPaths);
+    }
 
 
     msg(
@@ -1771,6 +2026,16 @@ async function submitRequest(){
 
   $("workFile").value =
     "";
+
+  $("workFile").dataset.pageCount =
+    "0";
+
+  $("workFile").dataset.fileCount =
+    "0";
+
+  $("pvcFileInfo").classList.add("hidden");
+
+  updatePVCPrice();
 
   $("customerRemark").value =
     "";
@@ -1861,6 +2126,8 @@ async function loadMyRequests(){
 
           <th>Delivery</th>
 
+          <th>Amount</th>
+
           <th>Address</th>
 
           <th>Remark</th>
@@ -1924,6 +2191,14 @@ async function loadMyRequests(){
                 : ""
               }
 
+            </td>
+
+            <td>
+              ${
+                Number.isFinite(Number(r.total_amount))
+                  ? "₹" + Number(r.total_amount).toFixed(0)
+                  : "-"
+              }
             </td>
 
 
@@ -1993,38 +2268,42 @@ async function loadMyRequests(){
 
 async function downloadFile(encoded){
 
-  const path =
-    decodeURIComponent(
-      encoded
-    );
+  const raw =
+    decodeURIComponent(encoded);
 
+  let paths = [];
 
-  const {data,error} =
-    await sb.storage
-      .from("customer-files")
-      .createSignedUrl(
-        path,
-        300
-      );
-
-
-  if(error){
-
-    alert(
-      error.message
-    );
-
-  }else{
-
-    window.open(
-      data.signedUrl,
-      "_blank"
-    );
-
+  try{
+    const parsed = JSON.parse(raw);
+    paths = Array.isArray(parsed) ? parsed : [raw];
+  }catch{
+    paths = [raw];
   }
 
-}
+  if(!paths.length) return;
 
+  const urls = [];
+
+  for(const path of paths){
+
+    const {data,error} =
+      await sb.storage
+        .from("customer-files")
+        .createSignedUrl(
+          path,
+          300
+        );
+
+    if(error){
+      alert(error.message);
+      return;
+    }
+
+    urls.push(data.signedUrl);
+  }
+
+  urls.forEach(url => window.open(url,"_blank"));
+}
 
 
 /* =========================
@@ -2155,6 +2434,14 @@ function renderAdminRequests(){
                 r.delivery_pincode
                 ? `<br><small>Pincode: ${escapeHtml(r.delivery_pincode)}</small>`
                 : ""
+              }
+            </td>
+
+            <td>
+              ${
+                Number.isFinite(Number(r.total_amount))
+                  ? "₹" + Number(r.total_amount).toFixed(0)
+                  : "-"
               }
             </td>
 
