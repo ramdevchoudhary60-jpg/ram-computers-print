@@ -504,10 +504,90 @@ footer{
   background:#155eef;
   color:#fff;
 }
-.admin-content{min-width:0}
+.admin-content{
+  min-width:0;
+  width:100%;
+}
+
+.admin-content .card{
+  overflow:hidden;
+}
+
+.admin-request-table{
+  width:100%;
+  table-layout:fixed;
+  border-collapse:collapse;
+}
+
+.admin-request-table th,
+.admin-request-table td{
+  padding:8px 6px;
+  font-size:12px;
+  line-height:1.25;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+.admin-request-table th{
+  white-space:normal;
+}
+
+.admin-request-table .request-col{width:11%}
+.admin-request-table .customer-col{width:13%}
+.admin-request-table .service-col{width:10%}
+.admin-request-table .file-col{width:7%}
+.admin-request-table .delivery-col{width:12%}
+.admin-request-table .amount-col{width:7%}
+.admin-request-table .address-col{width:16%}
+.admin-request-table .status-col{width:9%}
+.admin-request-table .remark-col{width:10%}
+.admin-request-table .save-col{width:5%}
+
+.admin-request-table select,
+.admin-request-table input{
+  width:100%;
+  min-width:0;
+  padding:7px 6px;
+  font-size:12px;
+  border-radius:8px;
+}
+
+.admin-request-table button{
+  padding:8px 7px;
+  font-size:11px;
+  width:100%;
+}
+
+.admin-request-table .link{
+  width:auto;
+}
+
+@media(max-width:900px){
+  .admin-layout{
+    grid-template-columns:180px minmax(0,1fr);
+  }
+  .admin-request-table th,
+  .admin-request-table td{
+    padding:7px 4px;
+    font-size:11px;
+  }
+  .admin-request-table button,
+  .admin-request-table select,
+  .admin-request-table input{
+    font-size:11px;
+    padding:6px 4px;
+  }
+}
+
 @media(max-width:720px){
   .admin-layout{grid-template-columns:1fr}
   .admin-sidebar{position:static}
+  .admin-request-table{
+    display:block;
+    overflow-x:auto;
+    white-space:normal;
+    table-layout:auto;
+  }
 }
 
 </style>
@@ -2170,7 +2250,20 @@ async function loadMyRequests(){
 
     <div style="overflow:auto">
 
-      <table>
+      <table class="admin-request-table">
+
+        <colgroup>
+          <col class="request-col">
+          <col class="customer-col">
+          <col class="service-col">
+          <col class="file-col">
+          <col class="delivery-col">
+          <col class="amount-col">
+          <col class="address-col">
+          <col class="status-col">
+          <col class="remark-col">
+          <col class="save-col">
+        </colgroup>
 
         <tr>
 
@@ -2191,6 +2284,8 @@ async function loadMyRequests(){
           <th>Date</th>
 
           <th>File</th>
+
+          <th>Delete</th>
 
         </tr>
 
@@ -2304,6 +2399,21 @@ async function loadMyRequests(){
 
             </td>
 
+            <td>
+
+              <button
+                class="danger"
+                style="padding:7px 9px;font-size:11px"
+                onclick="deleteMyRequest(
+                  ${r.id}
+                )">
+
+                Delete
+
+              </button>
+
+            </td>
+
           </tr>
 
         `).join("")}
@@ -2316,6 +2426,114 @@ async function loadMyRequests(){
 
 }
 
+
+
+/* =========================
+   CUSTOMER DELETE REQUEST
+========================= */
+
+async function deleteMyRequest(id){
+
+  if(!currentUser){
+    return;
+  }
+
+  const confirmed =
+    confirm(
+      "क्या आप यह request delete करना चाहते हैं? File भी delete हो जाएगी."
+    );
+
+  if(!confirmed){
+    return;
+  }
+
+  /*
+    Read only this customer's own request.
+    This also prevents deleting another customer's request
+    from the client-side UI.
+  */
+  const {data:request,error:fetchError} =
+    await sb
+      .from("requests")
+      .select("id,user_id,file_path")
+      .eq("id",id)
+      .eq("user_id",currentUser.id)
+      .maybeSingle();
+
+  if(fetchError){
+    alert(fetchError.message);
+    return;
+  }
+
+  if(!request){
+    alert("Request नहीं मिली या delete करने की permission नहीं है.");
+    await loadMyRequests();
+    return;
+  }
+
+  /*
+    Remove uploaded file(s) from Storage.
+    file_path may be a JSON array for multiple files,
+    or a single legacy path.
+  */
+  let paths = [];
+
+  if(request.file_path){
+
+    try{
+      const parsed =
+        JSON.parse(request.file_path);
+
+      paths =
+        Array.isArray(parsed)
+          ? parsed
+          : [request.file_path];
+
+    }catch{
+      paths =
+        [request.file_path];
+    }
+  }
+
+  if(paths.length){
+
+    const {error:storageError} =
+      await sb.storage
+        .from("customer-files")
+        .remove(paths);
+
+    /*
+      Do not stop the request deletion if a file was already
+      missing from storage.
+    */
+    if(storageError){
+      console.warn(
+        "Storage delete warning:",
+        storageError.message
+      );
+    }
+  }
+
+  const {error:deleteError} =
+    await sb
+      .from("requests")
+      .delete()
+      .eq("id",id)
+      .eq("user_id",currentUser.id);
+
+  if(deleteError){
+    alert(deleteError.message);
+    return;
+  }
+
+  msg(
+    "requestMsg",
+    "Request deleted successfully.",
+    "success"
+  );
+
+  await loadMyRequests();
+}
 
 
 /* =========================
@@ -2501,7 +2719,7 @@ function renderAdminRequests(){
               }
             </td>
 
-            <td style="min-width:280px;max-width:350px">
+            <td>
               ${escapeHtml(r.delivery_address || "Shop Pickup")}
             </td>
 
