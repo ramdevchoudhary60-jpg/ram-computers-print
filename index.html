@@ -513,7 +513,7 @@ footer{
   overflow:hidden;
 }
 
-.admin-request-wrap{
+.admin-panel-grid{
   width:100%;
   overflow-x:auto;
   border:1px solid #d9dee7;
@@ -521,117 +521,102 @@ footer{
   background:#fff;
 }
 
-.admin-request-table{
-  width:100%;
-  min-width:980px;
+.admin-excel-table{
+  width:1320px;
+  min-width:1320px;
   table-layout:fixed;
   border-collapse:collapse;
   margin:0;
 }
 
-.admin-request-table th,
-.admin-request-table td{
+.admin-excel-table th,
+.admin-excel-table td{
   border-right:1px solid #d9dee7;
   border-bottom:1px solid #d9dee7;
-  padding:9px 7px;
+  padding:10px 8px;
   text-align:left;
   vertical-align:middle;
   font-size:12px;
-  line-height:1.25;
-  color:#172033;
+  line-height:1.3;
 }
 
-.admin-request-table th{
-  background:#f5f7fa;
+.admin-excel-table th{
+  background:#f3f5f8;
   color:#475467;
   font-weight:800;
   white-space:nowrap;
+  height:44px;
 }
 
-.admin-request-table td{
+.admin-excel-table td{
   background:#fff;
+  height:66px;
 }
 
-.admin-request-table tr:last-child td{
-  border-bottom:0;
-}
-
-.admin-request-table th:last-child,
-.admin-request-table td:last-child{
-  border-right:0;
-}
-
-.admin-request-table tbody tr:hover td{
+.admin-excel-table tbody tr:hover td{
   background:#f9fbff;
 }
 
-.admin-request-table .request-col{width:12%}
-.admin-request-table .customer-col{width:12%}
-.admin-request-table .service-col{width:11%}
-.admin-request-table .file-col{width:7%}
-.admin-request-table .delivery-col{width:12%}
-.admin-request-table .amount-col{width:7%}
-.admin-request-table .address-col{width:14%}
-.admin-request-table .status-col{width:9%}
-.admin-request-table .remark-col{width:10%}
-.admin-request-table .save-col{width:6%}
+.admin-excel-table th:last-child,
+.admin-excel-table td:last-child{
+  border-right:0;
+}
 
-.admin-request-table .request-cell,
-.admin-request-table .customer-cell,
-.admin-request-table .service-cell,
-.admin-request-table .delivery-cell{
+.admin-excel-table tr:last-child td{
+  border-bottom:0;
+}
+
+/* Excel-style fixed columns */
+.admin-excel-table .c-request{width:155px}
+.admin-excel-table .c-customer{width:175px}
+.admin-excel-table .c-service{width:145px}
+.admin-excel-table .c-file{width:75px}
+.admin-excel-table .c-delivery{width:145px}
+.admin-excel-table .c-amount{width:85px}
+.admin-excel-table .c-address{width:205px}
+.admin-excel-table .c-status{width:135px}
+.admin-excel-table .c-remark{width:180px}
+.admin-excel-table .c-save{width:90px}
+
+.admin-excel-table .nowrap{
   white-space:nowrap;
 }
 
-.admin-request-table .address-cell,
-.admin-request-table .remark-cell{
+.admin-excel-table .wrap{
   white-space:normal;
   overflow-wrap:anywhere;
+  word-break:break-word;
 }
 
-.admin-request-table select,
-.admin-request-table input{
+.admin-excel-table select,
+.admin-excel-table input{
   width:100%;
-  min-width:0;
-  height:36px;
-  padding:6px 7px;
-  font-size:12px;
+  height:38px;
+  padding:7px 9px;
   border:1px solid #cfd6e2;
-  border-radius:7px;
+  border-radius:8px;
+  font-size:12px;
   background:#fff;
 }
 
-.admin-request-table button{
+.admin-excel-table button{
   width:100%;
-  height:36px;
-  padding:6px 7px;
+  height:38px;
+  padding:7px 9px;
+  border-radius:8px;
   font-size:12px;
-  border-radius:7px;
 }
 
-.admin-request-table .link{
+.admin-excel-table .link{
   width:auto;
   height:auto;
-  padding:2px 4px;
-  white-space:nowrap;
+  padding:3px 5px;
 }
 
 @media(max-width:1050px){
-  .admin-request-table th,
-  .admin-request-table td{
-    padding:8px 5px;
-    font-size:11px;
-  }
-
-  .admin-request-table{
-    min-width:940px;
-  }
-
-  .admin-request-table select,
-  .admin-request-table input,
-  .admin-request-table button{
-    height:34px;
-    font-size:11px;
+  .admin-excel-table{
+    width:1320px;
+    min-width:1320px;
   }
 }
 
@@ -2158,6 +2143,15 @@ async function submitRequest(){
         user_id:
           currentUser.id,
 
+        customer_name:
+          currentUser.user_metadata?.full_name ||
+          currentUser.email ||
+          "Customer",
+
+        customer_mobile:
+          currentUser.user_metadata?.mobile ||
+          "",
+
         service_id:
           selectedServiceId,
 
@@ -2496,47 +2490,48 @@ async function deleteMyRequest(id){
 
   const confirmed =
     confirm(
-      "क्या आप यह request delete करना चाहते हैं? File भी delete हो जाएगी."
+      "क्या आप यह request permanently delete करना चाहते हैं? Uploaded file भी हट जाएगी."
     );
 
   if(!confirmed){
     return;
   }
 
-  /*
-    Read only this customer's own request.
-    This also prevents deleting another customer's request
-    from the client-side UI.
-  */
+  /* Get only this user's own request. */
   const {data:request,error:fetchError} =
     await sb
       .from("requests")
-      .select("id,user_id,file_path")
+      .select("id,user_id,file_path,status")
       .eq("id",id)
       .eq("user_id",currentUser.id)
       .maybeSingle();
 
   if(fetchError){
+
     alert(fetchError.message);
     return;
   }
 
   if(!request){
-    alert("Request नहीं मिली या delete करने की permission नहीं है.");
+
+    alert(
+      "Request नहीं मिली या delete करने की permission नहीं है."
+    );
+
     await loadMyRequests();
     return;
   }
 
   /*
-    Remove uploaded file(s) from Storage.
-    file_path may be a JSON array for multiple files,
-    or a single legacy path.
+    Remove all related uploaded files.
+    Supports both old single-path records and new JSON-array records.
   */
   let paths = [];
 
   if(request.file_path){
 
     try{
+
       const parsed =
         JSON.parse(request.file_path);
 
@@ -2546,6 +2541,7 @@ async function deleteMyRequest(id){
           : [request.file_path];
 
     }catch{
+
       paths =
         [request.file_path];
     }
@@ -2558,10 +2554,6 @@ async function deleteMyRequest(id){
         .from("customer-files")
         .remove(paths);
 
-    /*
-      Do not stop the request deletion if a file was already
-      missing from storage.
-    */
     if(storageError){
       console.warn(
         "Storage delete warning:",
@@ -2570,6 +2562,11 @@ async function deleteMyRequest(id){
     }
   }
 
+  /*
+    Delete the database row.
+    IMPORTANT: Supabase must have a DELETE RLS policy for
+    requests.user_id = auth.uid(). See the SQL below.
+  */
   const {error:deleteError} =
     await sb
       .from("requests")
@@ -2578,7 +2575,13 @@ async function deleteMyRequest(id){
       .eq("user_id",currentUser.id);
 
   if(deleteError){
-    alert(deleteError.message);
+
+    alert(
+      "Request delete नहीं हुई: " +
+      deleteError.message +
+      "\\n\\nSupabase में requests DELETE policy लगानी होगी."
+    );
+
     return;
   }
 
@@ -2648,9 +2651,7 @@ async function loadAdmin(){
   const {data,error} =
     await sb
       .from("requests")
-      .select(
-        "*, services(name), profiles(full_name,mobile)"
-      )
+      .select("*, services(name)")
       .order(
         "created_at",
         {ascending:false}
@@ -2667,6 +2668,64 @@ async function loadAdmin(){
   }
 
   allAdminRequests = data || [];
+
+  /*
+    New requests store customer_name/customer_mobile directly.
+    For old requests, also try profiles using user_id.
+  */
+  const oldUserIds = [
+    ...new Set(
+      allAdminRequests
+        .filter(r => !r.customer_name && r.user_id)
+        .map(r => r.user_id)
+    )
+  ];
+
+  const profileMap = {};
+
+  if(oldUserIds.length){
+
+    const {data:profileRows,error:profileError} =
+      await sb
+        .from("profiles")
+        .select("id,full_name,mobile")
+        .in("id",oldUserIds);
+
+    if(!profileError){
+
+      (profileRows || []).forEach(profile => {
+        profileMap[profile.id] = profile;
+      });
+
+    }else{
+      console.warn(
+        "Profile lookup warning:",
+        profileError.message
+      );
+    }
+  }
+
+  allAdminRequests =
+    allAdminRequests.map(r => {
+
+      const profile =
+        profileMap[r.user_id] || null;
+
+      return {
+        ...r,
+
+        display_customer_name:
+          r.customer_name ||
+          profile?.full_name ||
+          "Customer",
+
+        display_customer_mobile:
+          r.customer_mobile ||
+          profile?.mobile ||
+          "-"
+      };
+
+    });
 
   renderAdminRequests();
 }
@@ -2695,7 +2754,8 @@ function renderAdminRequests(){
   if(currentAdminFilter !== "All"){
 
     data = allAdminRequests.filter(r =>
-      (r.status || "Pending") === currentAdminFilter
+      (r.status || "Pending") ===
+      currentAdminFilter
     );
 
   }
@@ -2712,123 +2772,173 @@ function renderAdminRequests(){
 
   $("adminRequests").innerHTML = `
 
-    <div style="overflow:auto">
+    <div class="admin-panel-grid">
 
-      <table>
+      <table class="admin-excel-table">
 
-        <tr>
-          <th>Request</th>
-          <th>Customer</th>
-          <th>Service</th>
-          <th>File</th>
-          <th>Delivery</th>
-          <th>Address</th>
-          <th>Status</th>
-          <th>Remark</th>
-          <th>Save</th>
-        </tr>
+        <colgroup>
+          <col class="c-request">
+          <col class="c-customer">
+          <col class="c-service">
+          <col class="c-file">
+          <col class="c-delivery">
+          <col class="c-amount">
+          <col class="c-address">
+          <col class="c-status">
+          <col class="c-remark">
+          <col class="c-save">
+        </colgroup>
 
-        ${data.map(r => `
-
+        <thead>
           <tr>
-
-            <td class="request-cell">
-              <b>${escapeHtml(r.request_id)}</b>
-              <br>
-              <small>${new Date(r.created_at).toLocaleString("en-IN")}</small>
-            </td>
-
-            <td class="customer-cell">
-              ${escapeHtml(r.profiles?.full_name || "-")}
-              <br>
-              ${escapeHtml(r.profiles?.mobile || "-")}
-            </td>
-
-            <td class="service-cell">
-              ${escapeHtml(r.services?.name || "-")}
-            </td>
-
-            <td>
-              <button
-                class="link"
-                onclick="downloadFile('${encodeURIComponent(r.file_path)}')">
-                Open
-              </button>
-            </td>
-
-            <td class="delivery-cell">
-              <b>${escapeHtml(r.delivery_type || "Pickup")}</b>
-              ${
-                r.delivery_pincode
-                ? `<br><small>Pincode: ${escapeHtml(r.delivery_pincode)}</small>`
-                : ""
-              }
-            </td>
-
-            <td style="white-space:nowrap">
-              ${
-                Number.isFinite(Number(r.total_amount))
-                  ? "₹" + Number(r.total_amount).toFixed(0)
-                  : "-"
-              }
-            </td>
-
-            <td class="address-cell">
-              ${escapeHtml(r.delivery_address || "Shop Pickup")}
-            </td>
-
-            <td>
-
-              <select id="st_${r.id}">
-
-                ${[
-                  "Pending",
-                  "Processing",
-                  "Ready",
-                  "Out for Delivery",
-                  "Delivered",
-                  "Cancelled"
-                ].map(x => `
-
-                  <option
-                    value="${x}"
-                    ${x === r.status ? "selected" : ""}>
-                    ${x}
-                  </option>
-
-                `).join("")}
-
-              </select>
-
-            </td>
-
-            <td class="remark-cell">
-
-              <input
-                id="rm_${r.id}"
-                value="${escapeHtml(r.remark || "")}"
-                placeholder="Remark">
-
-            </td>
-
-            <td>
-
-              <button onclick="updateRequest(${r.id})">
-                Save
-              </button>
-
-            </td>
-
+            <th>Request ID</th>
+            <th>Customer</th>
+            <th>Service</th>
+            <th>File</th>
+            <th>Delivery</th>
+            <th>Amount</th>
+            <th>Address</th>
+            <th>Status</th>
+            <th>Remark</th>
+            <th>Save</th>
           </tr>
+        </thead>
 
-        `).join("")}
+        <tbody>
+
+          ${data.map(r => `
+
+            <tr>
+
+              <td class="nowrap">
+                <b>${escapeHtml(r.request_id || "-")}</b>
+                <br>
+                <small>
+                  ${new Date(r.created_at).toLocaleString("en-IN")}
+                </small>
+              </td>
+
+              <td class="nowrap">
+                <b>
+                  ${escapeHtml(
+                    r.display_customer_name ||
+                    "Customer"
+                  )}
+                </b>
+                <br>
+                <small>
+                  ${escapeHtml(
+                    r.display_customer_mobile ||
+                    "-"
+                  )}
+                </small>
+              </td>
+
+              <td class="wrap">
+                ${escapeHtml(
+                  r.services?.name || "-"
+                )}
+              </td>
+
+              <td>
+                <button
+                  class="link"
+                  onclick="downloadFile(
+                    '${encodeURIComponent(
+                      r.file_path || ""
+                    )}'
+                  )">
+                  Open
+                </button>
+              </td>
+
+              <td class="nowrap">
+                <b>
+                  ${escapeHtml(
+                    r.delivery_type ||
+                    "Pickup"
+                  )}
+                </b>
+
+                ${
+                  r.delivery_pincode
+                    ? `<br><small>Pincode: ${escapeHtml(
+                        r.delivery_pincode
+                      )}</small>`
+                    : ""
+                }
+              </td>
+
+              <td class="nowrap">
+                ${
+                  Number.isFinite(
+                    Number(r.total_amount)
+                  )
+                    ? "₹" +
+                      Number(r.total_amount).toFixed(0)
+                    : "-"
+                }
+              </td>
+
+              <td class="wrap">
+                ${escapeHtml(
+                  r.delivery_address ||
+                  "Shop Pickup"
+                )}
+              </td>
+
+              <td>
+
+                <select id="st_${r.id}">
+                  ${[
+                    "Pending",
+                    "Processing",
+                    "Ready",
+                    "Out for Delivery",
+                    "Delivered",
+                    "Cancelled"
+                  ].map(x => `
+
+                    <option
+                      value="${x}"
+                      ${x === r.status ? "selected" : ""}>
+                      ${x}
+                    </option>
+
+                  `).join("")}
+                </select>
+
+              </td>
+
+              <td>
+
+                <input
+                  id="rm_${r.id}"
+                  value="${escapeHtml(
+                    r.remark || ""
+                  )}"
+                  placeholder="Enter remark">
+
+              </td>
+
+              <td>
+                <button
+                  onclick="updateRequest(${r.id})">
+                  Save
+                </button>
+              </td>
+
+            </tr>
+
+          `).join("")}
+
+        </tbody>
 
       </table>
 
     </div>
 
   `;
-
 }
 
 
