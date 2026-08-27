@@ -6,6 +6,7 @@
 <title>Ram Computers | Print Service Portal</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
 <style>
 *{
@@ -762,13 +763,13 @@ footer{
 
             <select
               id="deliveryType"
-              onchange="toggleDeliveryFields()">
+              onchange="toggleDeliveryFields();">
 
-              <option value="Pickup">
+              <option value="Pickup" data-charge="0">
                 Shop Pickup
               </option>
 
-              <option value="Home Delivery">
+              <option value="Home Delivery" data-charge="30">
                 Home Delivery
               </option>
 
@@ -1550,35 +1551,7 @@ function chooseService(id,name){
 
 
 /* =========================
-   DELIVERY FIELDS
-========================= */
-
-function toggleDeliveryFields(){
-
-  const home =
-    $("deliveryType").value ===
-    "Home Delivery";
-
-
-  $("deliveryAddressBox")
-    .classList
-    .toggle("hidden",!home);
-
-
-  $("deliveryAddress").required =
-    home;
-
-
-  $("deliveryPincode").required =
-    home;
-
-  updatePVCPrice();
-}
-
-
-
-/* =========================
-   PVC PRICING + FILE CHECK
+   DELIVERY + PVC PRICING
 ========================= */
 
 const PVC_REQUEST_PRICE = 70;
@@ -1595,26 +1568,105 @@ function getPVCSelectedFiles(){
   return Array.from($("workFile")?.files || []);
 }
 
+function getDeliveryCharge(){
+  const select = $("deliveryType");
+  if(!select) return PICKUP_PRICE;
+
+  const option = select.options[select.selectedIndex];
+  const charge = Number(option?.dataset?.charge);
+
+  if(Number.isFinite(charge)){
+    return charge;
+  }
+
+  const value = String(select.value || "").trim().toLowerCase();
+
+  return value.includes("home")
+    ? HOME_DELIVERY_PRICE
+    : PICKUP_PRICE;
+}
+
 function updatePVCPrice(){
-  if(!isPVCService()) return;
 
-  const delivery =
-    $("deliveryType")?.value === "Home Delivery"
-      ? HOME_DELIVERY_PRICE
-      : PICKUP_PRICE;
+  const priceBox = $("pvcPriceBox");
+  if(!priceBox) return;
 
-  /*
-    Important:
-    1 page OR 2 pages OR 2 separate 1-page files
-    = same PVC request charge ₹70.
-  */
+  if(!isPVCService()){
+    priceBox.classList.add("hidden");
+    return;
+  }
+
+  priceBox.classList.remove("hidden");
+
+  const delivery = getDeliveryCharge();
   const total = PVC_REQUEST_PRICE + delivery;
 
-  $("pvcCardAmount").textContent = PVC_REQUEST_PRICE;
-  $("pvcCardCount").textContent = "1 request (up to 2 pages)";
-  $("pvcDeliveryAmount").textContent = delivery;
-  $("pvcTotalAmount").textContent = total;
+  $("pvcCardAmount").textContent =
+    PVC_REQUEST_PRICE;
+
+  $("pvcCardCount").textContent =
+    "1 request (up to 2 pages)";
+
+  $("pvcDeliveryAmount").textContent =
+    delivery;
+
+  $("pvcTotalAmount").textContent =
+    total;
 }
+
+function toggleDeliveryFields(){
+
+  const select = $("deliveryType");
+  const option = select?.options?.[select.selectedIndex];
+
+  const home =
+    String(
+      option?.value ||
+      select?.value ||
+      ""
+    )
+      .trim()
+      .toLowerCase() === "home delivery";
+
+  $("deliveryAddressBox")
+    .classList
+    .toggle("hidden", !home);
+
+  $("deliveryAddress").required =
+    home;
+
+  $("deliveryPincode").required =
+    home;
+
+  /*
+    Force the price to refresh from the selected option's
+    data-charge. Home Delivery is always ₹30.
+  */
+  updatePVCPrice();
+}
+
+/*
+  Extra safety: if the browser restores a form value from history,
+  refresh the amount after the page is ready.
+*/
+document.addEventListener("DOMContentLoaded", () => {
+
+  const delivery =
+    $("deliveryType");
+
+  if(delivery){
+    delivery.addEventListener("change", () => {
+      toggleDeliveryFields();
+    });
+  }
+
+  updatePVCPrice();
+});
+
+
+/* =========================
+   PVC FILE CHECK
+========================= */
 
 function showPVCInfo(textValue, type="notice"){
   const info = $("pvcFileInfo");
@@ -1666,14 +1718,17 @@ async function handlePVCFileChange(){
 
         showPVCInfo(`Checking ${file.name} pages...`);
 
-        const pdfjs = await import(
-          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs"
-        );
+        if(!window.pdfjsLib){
+          throw new Error("PDF.js failed to load");
+        }
+
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
         const bytes = await file.arrayBuffer();
 
         const pdf =
-          await pdfjs.getDocument({data:bytes}).promise;
+          await window.pdfjsLib.getDocument({data:bytes}).promise;
 
         totalPages += pdf.numPages;
 
@@ -1683,7 +1738,7 @@ async function handlePVCFileChange(){
         input.dataset.pageCount = "0";
 
         showPVCInfo(
-          `PDF "${file.name}" की pages check नहीं हो सकीं। Valid PDF upload करें.`,
+          `PDF "${file.name}" की pages check नहीं हो सकीं। PDF file valid/complete होनी चाहिए।`,
           "error"
         );
 
@@ -1731,7 +1786,10 @@ async function handlePVCFileChange(){
   }else{
 
     showPVCInfo(
-      `${files.length} file(s), ${totalPages} page/card selected. PVC charge सिर्फ ₹70 है${$("deliveryType").value === "Home Delivery" ? " + ₹30 home delivery" : ""}.`,
+      `${files.length} file(s), ${totalPages} page/card selected. PVC charge सिर्फ ₹70 है${(
+        String($("deliveryType").value || "").trim().toLowerCase().includes("home") ||
+        String($("deliveryType").selectedOptions?.[0]?.textContent || "").trim().toLowerCase().includes("home")
+      ) ? " + ₹30 home delivery" : ""}.`,
       "success"
     );
   }
@@ -1827,9 +1885,7 @@ async function submitRequest(){
     }
 
     pvcDeliveryCharge =
-      deliveryType === "Home Delivery"
-        ? HOME_DELIVERY_PRICE
-        : PICKUP_PRICE;
+      getDeliveryCharge();
 
     // Fixed ₹70 for the complete PVC request, whether it has 1 or 2 pages.
     pvcTotalAmount =
