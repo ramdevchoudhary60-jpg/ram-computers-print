@@ -241,6 +241,39 @@ footer{
   padding:35px
 }
 
+
+.wallet-box{
+  margin-top:18px;
+  background:linear-gradient(135deg,#eef4ff,#f8fbff);
+  border:1px solid #dbe7ff;
+  border-radius:16px;
+  padding:18px;
+}
+.wallet-grid{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:16px;
+  align-items:center;
+}
+.wallet-balance{
+  font-size:30px;
+  font-weight:800;
+  color:#155eef;
+  margin:4px 0;
+}
+.wallet-points{
+  color:#667085;
+  font-size:14px;
+}
+.wallet-history{
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px solid #e5e9f0;
+}
+@media(max-width:720px){
+  .wallet-grid{grid-template-columns:1fr}
+}
+
 .delivery-box{
   margin-top:8px;
   padding:14px;
@@ -417,6 +450,18 @@ footer{
         class="muted">
       </p>
 
+      <!-- WALLET -->
+      <div class="wallet-box">
+        <div class="wallet-grid">
+          <div>
+            <div style="font-size:13px;color:#667085;font-weight:800">MY WALLET</div>
+            <div class="wallet-balance">₹<span id="walletAmount">0</span></div>
+            <div class="wallet-points">⭐ <b id="walletPoints">0</b> Points &nbsp;•&nbsp; ₹1 = 1 Point</div>
+          </div>
+          <button onclick="addMoney()">+ Add Money</button>
+        </div>
+        <div id="walletMsg"></div>
+      </div>
 
       <h2 style="margin-top:24px">
         New Print Work
@@ -948,6 +993,8 @@ async function loadApp(){
 
     await loadServices();
 
+    await loadWallet();
+
     await loadMyRequests();
 
   }
@@ -978,6 +1025,53 @@ function showAuth(){
 
 }
 
+
+
+/* =========================
+   WALLET
+========================= */
+
+async function loadWallet(){
+
+  if(!currentUser) return;
+
+  const {data,error}=await sb
+    .from("wallets")
+    .select("points")
+    .eq("user_id",currentUser.id)
+    .maybeSingle();
+
+  if(error){
+    console.log("Wallet load error:",error.message);
+    $("walletPoints").textContent="0";
+    $("walletAmount").textContent="0";
+    return;
+  }
+
+  const points=Number(data?.points||0);
+  $("walletPoints").textContent=points;
+  $("walletAmount").textContent=points;
+}
+
+function addMoney(){
+
+  const amount=prompt("Kitne rupaye wallet me add karne hain?");
+
+  if(amount===null) return;
+
+  const value=Number(amount);
+
+  if(!Number.isFinite(value)||value<=0){
+    alert("Valid amount enter karo.");
+    return;
+  }
+
+  alert(
+    "Razorpay payment gateway abhi connect nahi hua hai.\n\n"+
+    "Amount: ₹"+value.toFixed(2)+"\n"+
+    "Points: "+Math.floor(value)
+  );
+}
 
 
 /* =========================
@@ -1180,12 +1274,12 @@ async function submitRequest(){
 
   if(
     file.size >
-    20 * 1024 * 1024
+    100 * 1024 * 1024
   ){
 
     msg(
       "requestMsg",
-      "Please keep the file under 20 MB.",
+      "Please keep the file under 100 MB.",
       "error"
     );
 
