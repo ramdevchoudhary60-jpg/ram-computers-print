@@ -111,7 +111,8 @@ $("registerTab").onclick=()=>{ $("registerForm").classList.remove("hidden");$("l
 async function register(){
   const name=$("regName").value.trim(), mobile=$("regMobile").value.trim(), email=$("regEmail").value.trim(), password=$("regPassword").value;
   if(!name||!mobile||!email||password.length<6){msg("authMsg","Please enter your full name, 10-digit mobile number, email, and a password of at least 6 characters.","error");return}
-  const {data,error}=await sb.auth.signUp({email,password,options:{data:{full_name:name,mobile}}});
+  const redirectUrl = "https://ramdevchoudhary60-jpg.github.io/ram-computers-print/";
+  const {data,error}=await sb.auth.signUp({email,password,options:{data:{full_name:name,mobile},emailRedirectTo:redirectUrl}});
   if(error){msg("authMsg",error.message,"error");return}
   msg("authMsg",data.session?"Account created.":"Account created. If email confirmation is required, please confirm your email.","success");
 }
