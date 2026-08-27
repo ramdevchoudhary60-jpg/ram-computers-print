@@ -4,188 +4,1932 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Ram Computers | Print Service Portal</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:Arial,system-ui,sans-serif;background:#f4f7fb;color:#172033}
-header{background:#fff;border-bottom:1px solid #e5e9f0;padding:16px 22px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:5}
-.brand{font-size:22px;font-weight:800;color:#155eef}.brand small{display:block;font-size:11px;color:#667085;font-weight:500;margin-top:2px}
-.container{max-width:1050px;margin:28px auto;padding:0 18px}.card{background:#fff;border:1px solid #e5e9f0;border-radius:16px;padding:22px;box-shadow:0 5px 20px #1018280d}
-.auth{max-width:460px;margin:45px auto}.tabs{display:flex;gap:8px;margin-bottom:18px}.tabs button{flex:1}
-h1{font-size:28px;margin:0 0 8px}h2{font-size:20px;margin:0 0 16px}p.muted{color:#667085}
-label{display:block;font-size:14px;font-weight:700;margin:13px 0 6px}input,select,textarea{width:100%;padding:12px;border:1px solid #d0d5dd;border-radius:10px;font-size:15px;background:#fff}textarea{min-height:90px;resize:vertical}
-button{border:0;border-radius:10px;padding:12px 16px;background:#155eef;color:#fff;font-weight:700;cursor:pointer}button.secondary{background:#eef4ff;color:#155eef}button.danger{background:#d92d20}button.link{background:transparent;color:#155eef;padding:4px}
-.row{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.service{border:1px solid #e5e9f0;border-radius:14px;padding:17px;cursor:pointer;background:#fff}.service:hover{border-color:#155eef;box-shadow:0 4px 14px #155eef18}.service b{display:block;margin-bottom:6px}.service span{font-size:13px;color:#667085}
-.top-actions{display:flex;gap:8px;align-items:center}.hidden{display:none!important}.notice{padding:12px;border-radius:10px;margin:12px 0;background:#f2f4f7;color:#344054}.success{background:#ecfdf3;color:#067647}.error{background:#fef3f2;color:#b42318}
-.badge{display:inline-block;padding:6px 10px;border-radius:99px;background:#eef4ff;color:#155eef;font-size:12px;font-weight:800}
-table{width:100%;border-collapse:collapse}th,td{padding:11px 8px;border-bottom:1px solid #eaecf0;text-align:left;font-size:13px;vertical-align:top}th{color:#667085}
-.file{padding:10px;border:1px dashed #98a2b3;border-radius:10px;background:#fafafa}
-footer{text-align:center;color:#667085;font-size:12px;padding:35px}
-@media(max-width:720px){.row,.grid{grid-template-columns:1fr}.top-actions span{display:none}header{padding:13px}.container{margin:18px auto}.card{padding:17px}}
+*{
+  box-sizing:border-box
+}
+
+body{
+  margin:0;
+  font-family:Arial,system-ui,sans-serif;
+  background:#f4f7fb;
+  color:#172033
+}
+
+header{
+  background:#fff;
+  border-bottom:1px solid #e5e9f0;
+  padding:16px 22px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position:sticky;
+  top:0;
+  z-index:5
+}
+
+.brand{
+  font-size:22px;
+  font-weight:800;
+  color:#155eef
+}
+
+.brand small{
+  display:block;
+  font-size:11px;
+  color:#667085;
+  font-weight:500;
+  margin-top:2px
+}
+
+.container{
+  max-width:1050px;
+  margin:28px auto;
+  padding:0 18px
+}
+
+.card{
+  background:#fff;
+  border:1px solid #e5e9f0;
+  border-radius:16px;
+  padding:22px;
+  box-shadow:0 5px 20px #1018280d
+}
+
+.auth{
+  max-width:460px;
+  margin:45px auto
+}
+
+.tabs{
+  display:flex;
+  gap:8px;
+  margin-bottom:18px
+}
+
+.tabs button{
+  flex:1
+}
+
+h1{
+  font-size:28px;
+  margin:0 0 8px
+}
+
+h2{
+  font-size:20px;
+  margin:0 0 16px
+}
+
+p.muted{
+  color:#667085
+}
+
+label{
+  display:block;
+  font-size:14px;
+  font-weight:700;
+  margin:13px 0 6px
+}
+
+input,
+select,
+textarea{
+  width:100%;
+  padding:12px;
+  border:1px solid #d0d5dd;
+  border-radius:10px;
+  font-size:15px;
+  background:#fff
+}
+
+textarea{
+  min-height:90px;
+  resize:vertical
+}
+
+button{
+  border:0;
+  border-radius:10px;
+  padding:12px 16px;
+  background:#155eef;
+  color:#fff;
+  font-weight:700;
+  cursor:pointer
+}
+
+button.secondary{
+  background:#eef4ff;
+  color:#155eef
+}
+
+button.danger{
+  background:#d92d20
+}
+
+button.link{
+  background:transparent;
+  color:#155eef;
+  padding:4px
+}
+
+.row{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:16px
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px
+}
+
+.service{
+  border:1px solid #e5e9f0;
+  border-radius:14px;
+  padding:17px;
+  cursor:pointer;
+  background:#fff
+}
+
+.service:hover{
+  border-color:#155eef;
+  box-shadow:0 4px 14px #155eef18
+}
+
+.service b{
+  display:block;
+  margin-bottom:6px
+}
+
+.service span{
+  font-size:13px;
+  color:#667085
+}
+
+.top-actions{
+  display:flex;
+  gap:8px;
+  align-items:center
+}
+
+.hidden{
+  display:none!important
+}
+
+.notice{
+  padding:12px;
+  border-radius:10px;
+  margin:12px 0;
+  background:#f2f4f7;
+  color:#344054
+}
+
+.success{
+  background:#ecfdf3;
+  color:#067647
+}
+
+.error{
+  background:#fef3f2;
+  color:#b42318
+}
+
+.badge{
+  display:inline-block;
+  padding:6px 10px;
+  border-radius:99px;
+  background:#eef4ff;
+  color:#155eef;
+  font-size:12px;
+  font-weight:800
+}
+
+table{
+  width:100%;
+  border-collapse:collapse
+}
+
+th,
+td{
+  padding:11px 8px;
+  border-bottom:1px solid #eaecf0;
+  text-align:left;
+  font-size:13px;
+  vertical-align:top
+}
+
+th{
+  color:#667085
+}
+
+.file{
+  padding:10px;
+  border:1px dashed #98a2b3;
+  border-radius:10px;
+  background:#fafafa
+}
+
+footer{
+  text-align:center;
+  color:#667085;
+  font-size:12px;
+  padding:35px
+}
+
+.delivery-box{
+  margin-top:8px;
+  padding:14px;
+  background:#f8fafc;
+  border:1px solid #e5e9f0;
+  border-radius:12px
+}
+
+@media(max-width:720px){
+
+  .row,
+  .grid{
+    grid-template-columns:1fr
+  }
+
+  .top-actions span{
+    display:none
+  }
+
+  header{
+    padding:13px
+  }
+
+  .container{
+    margin:18px auto
+  }
+
+  .card{
+    padding:17px
+  }
+}
 </style>
+
 </head>
+
 <body>
+
 <header>
-  <div class="brand">Ram Computers<small>Print Service Portal</small></div>
+
+  <div class="brand">
+    Ram Computers
+    <small>Print Service Portal</small>
+  </div>
+
   <div id="headerActions" class="top-actions"></div>
+
 </header>
 
+
 <main class="container">
+
+  <!-- LOGIN / REGISTER -->
+
   <section id="authView" class="card auth">
+
     <h1>Welcome 👋</h1>
-    <p class="muted">Manage your print work online.</p>
+
+    <p class="muted">
+      Manage your print work online.
+    </p>
+
     <div class="tabs">
-      <button id="loginTab">Login</button>
-      <button id="registerTab" class="secondary">Register</button>
+
+      <button id="loginTab">
+        Login
+      </button>
+
+      <button id="registerTab" class="secondary">
+        Register
+      </button>
+
     </div>
+
+
+    <!-- LOGIN -->
 
     <div id="loginForm">
-      <label>Email</label><input id="loginEmail" type="email" placeholder="your@email.com">
-      <label>Password</label><input id="loginPassword" type="password" placeholder="Password">
-      <button style="width:100%;margin-top:16px" onclick="login()">Login</button>
+
+      <label>Email</label>
+
+      <input
+        id="loginEmail"
+        type="email"
+        placeholder="your@email.com"
+      >
+
+      <label>Password</label>
+
+      <input
+        id="loginPassword"
+        type="password"
+        placeholder="Password"
+      >
+
+      <button
+        style="width:100%;margin-top:16px"
+        onclick="login()">
+
+        Login
+
+      </button>
+
     </div>
+
+
+    <!-- REGISTER -->
 
     <div id="registerForm" class="hidden">
-      <label>Full Name</label><input id="regName" placeholder="Enter your full name">
-      <label>Mobile Number</label><input id="regMobile" type="tel" placeholder="Enter your 10 digit mobile number">
-      <label>Email</label><input id="regEmail" type="email" placeholder="your@email.com">
-      <label>Password</label><input id="regPassword" type="password" placeholder="Enter at least 6 characters">
-      <button style="width:100%;margin-top:16px" onclick="register()">Register</button>
+
+      <label>Full Name</label>
+
+      <input
+        id="regName"
+        placeholder="Enter your full name"
+      >
+
+
+      <label>Mobile Number</label>
+
+      <input
+        id="regMobile"
+        type="tel"
+        placeholder="Enter your 10 digit mobile number"
+      >
+
+
+      <label>Email</label>
+
+      <input
+        id="regEmail"
+        type="email"
+        placeholder="your@email.com"
+      >
+
+
+      <label>Password</label>
+
+      <input
+        id="regPassword"
+        type="password"
+        placeholder="Enter at least 6 characters"
+      >
+
+
+      <button
+        style="width:100%;margin-top:16px"
+        onclick="register()">
+
+        Register
+
+      </button>
+
     </div>
+
+
     <div id="authMsg"></div>
+
   </section>
+
+
+
+  <!-- CUSTOMER DASHBOARD -->
 
   <section id="customerView" class="hidden">
+
     <div class="card">
-      <h1>Customer Dashboard</h1>
-      <p id="welcomeText" class="muted"></p>
-      <h2 style="margin-top:24px">New Print Work</h2>
-      <div id="services" class="grid"></div>
-      <div id="requestBox" class="hidden" style="margin-top:22px">
-        <div class="notice"><b id="selectedService"></b> selected. Now upload your file.</div>
-        <label>File Upload</label>
-        <div class="file"><input id="workFile" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"></div>
-        <label>Remark / Information (optional)</label>
-        <textarea id="customerRemark" placeholder="e.g. Please add this name to the design..."></textarea>
-        <button style="margin-top:12px" onclick="submitRequest()">Submit Request</button>
-        <div id="requestMsg"></div>
+
+      <h1>
+        Customer Dashboard
+      </h1>
+
+      <p
+        id="welcomeText"
+        class="muted">
+      </p>
+
+
+      <h2 style="margin-top:24px">
+        New Print Work
+      </h2>
+
+
+      <div
+        id="services"
+        class="grid">
       </div>
+
+
+      <!-- REQUEST FORM -->
+
+      <div
+        id="requestBox"
+        class="hidden"
+        style="margin-top:22px">
+
+        <div class="notice">
+
+          <b id="selectedService"></b>
+
+          selected. Now upload your file.
+
+        </div>
+
+
+        <!-- FILE -->
+
+        <label>
+          File Upload
+        </label>
+
+        <div class="file">
+
+          <input
+            id="workFile"
+            type="file"
+            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx">
+
+        </div>
+
+
+        <!-- DELIVERY -->
+
+        <div class="row">
+
+          <div>
+
+            <label>
+              Delivery Type
+            </label>
+
+            <select
+              id="deliveryType"
+              onchange="toggleDeliveryFields()">
+
+              <option value="Pickup">
+                Shop Pickup
+              </option>
+
+              <option value="Home Delivery">
+                Home Delivery
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <div>
+
+            <label>
+              Delivery Pincode
+            </label>
+
+            <input
+              id="deliveryPincode"
+              type="text"
+              inputmode="numeric"
+              maxlength="6"
+              placeholder="6 digit pincode">
+
+          </div>
+
+        </div>
+
+
+        <!-- ADDRESS -->
+
+        <div
+          id="deliveryAddressBox"
+          class="delivery-box hidden">
+
+          <label>
+            Delivery Address
+          </label>
+
+          <textarea
+            id="deliveryAddress"
+            placeholder="House/Shop No., Village, Post, Tehsil, District, State">
+          </textarea>
+
+        </div>
+
+
+        <!-- REMARK -->
+
+        <label>
+          Remark / Information (optional)
+        </label>
+
+        <textarea
+          id="customerRemark"
+          placeholder="e.g. Please add this name to the design...">
+        </textarea>
+
+
+        <button
+          style="margin-top:12px"
+          onclick="submitRequest()">
+
+          Submit Request
+
+        </button>
+
+
+        <div id="requestMsg"></div>
+
+      </div>
+
     </div>
 
-    <div class="card" style="margin-top:18px">
-      <h2>My Requests</h2>
-      <div id="myRequests">Loading...</div>
+
+
+    <!-- MY REQUESTS -->
+
+    <div
+      class="card"
+      style="margin-top:18px">
+
+      <h2>
+        My Requests
+      </h2>
+
+      <div id="myRequests">
+        Loading...
+      </div>
+
     </div>
+
   </section>
 
-  <section id="adminView" class="hidden">
+
+
+  <!-- ADMIN -->
+
+  <section
+    id="adminView"
+    class="hidden">
+
     <div class="card">
-      <h1>Admin Panel</h1>
-      <p class="muted">Manage all print requests here.</p>
-      <div id="adminRequests">Loading...</div>
+
+      <h1>
+        Admin Panel
+      </h1>
+
+      <p class="muted">
+        Manage all print requests here.
+      </p>
+
+      <div id="adminRequests">
+        Loading...
+      </div>
+
     </div>
+
   </section>
+
 </main>
 
-<footer>Ram Computers • Print Service Management</footer>
+
+<footer>
+  Ram Computers • Print Service Management
+</footer>
+
+
 
 <script>
-const SUPABASE_URL = "https://pvuwthefqtzujpfnkzbl.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_Svox6Arqzm1P4R_E2Q_uqA_A4BAmYzv";
 
-let sb = null, currentUser = null, selectedServiceId = null, selectedServiceName = "";
+/* =========================
+   SUPABASE
+========================= */
 
-function $(id){return document.getElementById(id)}
-function msg(id,text,type="notice"){ $(id).innerHTML = text ? `<div class="notice ${type}">${text}</div>` : "" }
+const SUPABASE_URL =
+"https://pvuwthefqtzujpfnkzbl.supabase.co";
 
-if(!SUPABASE_URL.startsWith("PASTE_") && !SUPABASE_ANON_KEY.startsWith("PASTE_")){
-  sb = window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-  sb.auth.onAuthStateChange((_event,session)=>{ currentUser=session?.user||null; if(currentUser) loadApp(); else showAuth(); });
-}else{
-  msg("authMsg","पहले Supabase URL और Anon Key को इस file में भरना होगा।","error");
+const SUPABASE_ANON_KEY =
+"sb_publishable_Svox6Arqzm1P4R_E2Q_uqA_A4BAmYzv";
+
+
+let sb = null;
+
+let currentUser = null;
+
+let selectedServiceId = null;
+
+let selectedServiceName = "";
+
+
+
+/* =========================
+   HELPERS
+========================= */
+
+function $(id){
+
+  return document.getElementById(id);
+
 }
 
-$("loginTab").onclick=()=>{ $("loginForm").classList.remove("hidden");$("registerForm").classList.add("hidden");$("loginTab").classList.remove("secondary");$("registerTab").classList.add("secondary"); };
-$("registerTab").onclick=()=>{ $("registerForm").classList.remove("hidden");$("loginForm").classList.add("hidden");$("registerTab").classList.remove("secondary");$("loginTab").classList.add("secondary"); };
+
+function msg(id,text,type="notice"){
+
+  $(id).innerHTML =
+    text
+      ? `<div class="notice ${type}">${text}</div>`
+      : "";
+
+}
+
+
+/* =========================
+   SUPABASE CONNECTION
+========================= */
+
+if(
+  !SUPABASE_URL.startsWith("PASTE_") &&
+  !SUPABASE_ANON_KEY.startsWith("PASTE_")
+){
+
+  sb =
+    window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
+
+
+  sb.auth.onAuthStateChange(
+    (_event,session)=>{
+
+      currentUser =
+        session?.user || null;
+
+      if(currentUser){
+
+        loadApp();
+
+      }else{
+
+        showAuth();
+
+      }
+
+    }
+  );
+
+}else{
+
+  msg(
+    "authMsg",
+    "पहले Supabase URL और Anon Key को इस file में भरना होगा।",
+    "error"
+  );
+
+}
+
+
+
+/* =========================
+   LOGIN / REGISTER TABS
+========================= */
+
+$("loginTab").onclick=()=>{
+
+  $("loginForm")
+    .classList
+    .remove("hidden");
+
+  $("registerForm")
+    .classList
+    .add("hidden");
+
+  $("loginTab")
+    .classList
+    .remove("secondary");
+
+  $("registerTab")
+    .classList
+    .add("secondary");
+
+};
+
+
+$("registerTab").onclick=()=>{
+
+  $("registerForm")
+    .classList
+    .remove("hidden");
+
+  $("loginForm")
+    .classList
+    .add("hidden");
+
+  $("registerTab")
+    .classList
+    .remove("secondary");
+
+  $("loginTab")
+    .classList
+    .add("secondary");
+
+};
+
+
+
+/* =========================
+   REGISTER
+========================= */
 
 async function register(){
-  const name=$("regName").value.trim(), mobile=$("regMobile").value.trim(), email=$("regEmail").value.trim(), password=$("regPassword").value;
-  if(!name||!mobile||!email||password.length<6){msg("authMsg","Please enter your full name, 10-digit mobile number, email, and a password of at least 6 characters.","error");return}
-  const redirectUrl = "https://ramdevchoudhary60-jpg.github.io/ram-computers-print/";
-  const {data,error}=await sb.auth.signUp({email,password,options:{data:{full_name:name,mobile},emailRedirectTo:redirectUrl}});
-  if(error){msg("authMsg",error.message,"error");return}
-  msg("authMsg",data.session?"Account created.":"Account created. If email confirmation is required, please confirm your email.","success");
+
+  const name =
+    $("regName").value.trim();
+
+  const mobile =
+    $("regMobile").value.trim();
+
+  const email =
+    $("regEmail").value.trim();
+
+  const password =
+    $("regPassword").value;
+
+
+  if(
+    !name ||
+    !mobile ||
+    !email ||
+    password.length < 6
+  ){
+
+    msg(
+      "authMsg",
+      "Please enter your full name, 10-digit mobile number, email, and a password of at least 6 characters.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  const redirectUrl =
+    "https://ramdevchoudhary60-jpg.github.io/ram-computers-print/";
+
+
+  const {data,error} =
+    await sb.auth.signUp({
+
+      email,
+
+      password,
+
+      options:{
+
+        data:{
+          full_name:name,
+          mobile:mobile
+        },
+
+        emailRedirectTo:
+          redirectUrl
+
+      }
+
+    });
+
+
+  if(error){
+
+    msg(
+      "authMsg",
+      error.message,
+      "error"
+    );
+
+    return;
+  }
+
+
+  msg(
+    "authMsg",
+
+    data.session
+      ? "Account created."
+      : "Account created. If email confirmation is required, please confirm your email.",
+
+    "success"
+  );
+
 }
+
+
+
+/* =========================
+   LOGIN
+========================= */
 
 async function login(){
-  const email=$("loginEmail").value.trim(), password=$("loginPassword").value;
-  const {error}=await sb.auth.signInWithPassword({email,password});
-  if(error) msg("authMsg",error.message,"error");
+
+  const email =
+    $("loginEmail")
+      .value
+      .trim();
+
+  const password =
+    $("loginPassword")
+      .value;
+
+
+  const {error} =
+    await sb.auth.signInWithPassword({
+
+      email,
+      password
+
+    });
+
+
+  if(error){
+
+    msg(
+      "authMsg",
+      error.message,
+      "error"
+    );
+
+  }
+
 }
 
-async function logout(){await sb.auth.signOut()}
+
+
+/* =========================
+   LOGOUT
+========================= */
+
+async function logout(){
+
+  await sb.auth.signOut();
+
+}
+
+
+
+/* =========================
+   LOAD APP
+========================= */
 
 async function loadApp(){
-  $("authView").classList.add("hidden");
-  $("customerView").classList.add("hidden");
-  $("adminView").classList.add("hidden");
-  $("headerActions").innerHTML=`<span>${currentUser.email}</span><button class="secondary" onclick="logout()">Logout</button>`;
-  const {data:profile}=await sb.from("profiles").select("*").eq("id",currentUser.id).single();
-  if(profile?.is_admin){$("adminView").classList.remove("hidden");await loadAdmin();}
-  else{$("customerView").classList.remove("hidden");$("welcomeText").textContent=`Welcome, ${profile?.full_name||currentUser.email}`;await loadServices();await loadMyRequests();}
+
+  $("authView")
+    .classList
+    .add("hidden");
+
+  $("customerView")
+    .classList
+    .add("hidden");
+
+  $("adminView")
+    .classList
+    .add("hidden");
+
+
+  $("headerActions").innerHTML = `
+
+    <span>
+      ${escapeHtml(currentUser.email)}
+    </span>
+
+    <button
+      class="secondary"
+      onclick="logout()">
+
+      Logout
+
+    </button>
+
+  `;
+
+
+  const {data:profile} =
+    await sb
+      .from("profiles")
+      .select("*")
+      .eq("id",currentUser.id)
+      .single();
+
+
+  if(profile?.is_admin){
+
+    $("adminView")
+      .classList
+      .remove("hidden");
+
+    await loadAdmin();
+
+  }else{
+
+    $("customerView")
+      .classList
+      .remove("hidden");
+
+
+    $("welcomeText").textContent =
+      `Welcome, ${profile?.full_name || currentUser.email}`;
+
+
+    await loadServices();
+
+    await loadMyRequests();
+
+  }
+
 }
 
-function showAuth(){ $("authView").classList.remove("hidden");$("customerView").classList.add("hidden");$("adminView").classList.add("hidden");$("headerActions").innerHTML=""; }
+
+
+/* =========================
+   SHOW LOGIN
+========================= */
+
+function showAuth(){
+
+  $("authView")
+    .classList
+    .remove("hidden");
+
+  $("customerView")
+    .classList
+    .add("hidden");
+
+  $("adminView")
+    .classList
+    .add("hidden");
+
+  $("headerActions").innerHTML="";
+
+}
+
+
+
+/* =========================
+   LOAD SERVICES
+========================= */
 
 async function loadServices(){
-  const {data,error}=await sb.from("services").select("*").eq("active",true).order("id");
-  if(error){$("services").innerHTML="Services could not be loaded.";return}
-  $("services").innerHTML=data.map(s=>`<div class="service" onclick="chooseService(${s.id},'${escapeHtml(s.name)}')"><b>${escapeHtml(s.name)}</b><span>Upload a file for this service</span></div>`).join("");
+
+  const {data,error} =
+    await sb
+      .from("services")
+      .select("*")
+      .eq("active",true)
+      .order("id");
+
+
+  if(error){
+
+    $("services").innerHTML =
+      "Services could not be loaded.";
+
+    return;
+  }
+
+
+  $("services").innerHTML =
+
+    data.map(s => `
+
+      <div
+        class="service"
+        onclick="chooseService(
+          ${s.id},
+          '${escapeHtml(s.name)}'
+        )">
+
+        <b>
+          ${escapeHtml(s.name)}
+        </b>
+
+        <span>
+          Upload a file for this service
+        </span>
+
+      </div>
+
+    `).join("");
+
 }
-function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
-function chooseService(id,name){selectedServiceId=id;selectedServiceName=name;$("selectedService").textContent=name;$("requestBox").classList.remove("hidden");$("requestBox").scrollIntoView({behavior:"smooth"});}
+
+
+
+/* =========================
+   ESCAPE HTML
+========================= */
+
+function escapeHtml(s){
+
+  if(s === null || s === undefined){
+
+    return "";
+
+  }
+
+  return String(s).replace(
+    /[&<>"']/g,
+
+    m => ({
+
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#039;"
+
+    }[m])
+
+  );
+
+}
+
+
+
+/* =========================
+   SELECT SERVICE
+========================= */
+
+function chooseService(id,name){
+
+  selectedServiceId =
+    id;
+
+  selectedServiceName =
+    name;
+
+
+  $("selectedService")
+    .textContent =
+      name;
+
+
+  $("requestBox")
+    .classList
+    .remove("hidden");
+
+
+  toggleDeliveryFields();
+
+
+  $("requestBox")
+    .scrollIntoView({
+      behavior:"smooth"
+    });
+
+}
+
+
+
+/* =========================
+   DELIVERY FIELDS
+========================= */
+
+function toggleDeliveryFields(){
+
+  const home =
+    $("deliveryType").value ===
+    "Home Delivery";
+
+
+  $("deliveryAddressBox")
+    .classList
+    .toggle("hidden",!home);
+
+
+  $("deliveryAddress").required =
+    home;
+
+
+  $("deliveryPincode").required =
+    home;
+
+}
+
+
+
+/* =========================
+   SUBMIT REQUEST
+========================= */
 
 async function submitRequest(){
-  const file=$("workFile").files[0];
-  if(!selectedServiceId||!file){msg("requestMsg","Please select a service and a file.","error");return}
-  if(file.size>20*1024*1024){msg("requestMsg","Please keep the file under 20 MB.","error");return}
-  msg("requestMsg","Uploading...");
-  const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
-  const path=`${currentUser.id}/${Date.now()}_${safe}`;
-  const up=await sb.storage.from("customer-files").upload(path,file,{upsert:false});
-  if(up.error){msg("requestMsg",up.error.message,"error");return}
-  const ins=await sb.from("requests").insert({user_id:currentUser.id,service_id:selectedServiceId,file_path:path,remark:$("customerRemark").value.trim()});
-  if(ins.error){await sb.storage.from("customer-files").remove([path]);msg("requestMsg",ins.error.message,"error");return}
-  $("workFile").value="";$("customerRemark").value="";msg("requestMsg","Submit Requestted successfully.","success");await loadMyRequests();
+
+  const file =
+    $("workFile")
+      .files[0];
+
+
+  const deliveryType =
+    $("deliveryType")
+      .value;
+
+
+  const deliveryAddress =
+    $("deliveryAddress")
+      .value
+      .trim();
+
+
+  const deliveryPincode =
+    $("deliveryPincode")
+      .value
+      .trim();
+
+
+  const remark =
+    $("customerRemark")
+      .value
+      .trim();
+
+
+
+  /* SERVICE + FILE */
+
+  if(
+    !selectedServiceId ||
+    !file
+  ){
+
+    msg(
+      "requestMsg",
+      "Please select a service and a file.",
+      "error"
+    );
+
+    return;
+  }
+
+
+
+  /* FILE SIZE */
+
+  if(
+    file.size >
+    20 * 1024 * 1024
+  ){
+
+    msg(
+      "requestMsg",
+      "Please keep the file under 20 MB.",
+      "error"
+    );
+
+    return;
+  }
+
+
+
+  /* HOME DELIVERY VALIDATION */
+
+  if(
+    deliveryType ===
+    "Home Delivery"
+  ){
+
+    if(!deliveryAddress){
+
+      msg(
+        "requestMsg",
+        "Please enter the complete delivery address.",
+        "error"
+      );
+
+      return;
+    }
+
+
+    if(
+      !/^\d{6}$/.test(
+        deliveryPincode
+      )
+    ){
+
+      msg(
+        "requestMsg",
+        "Please enter a valid 6 digit pincode.",
+        "error"
+      );
+
+      return;
+    }
+
+  }
+
+
+
+  msg(
+    "requestMsg",
+    "Uploading..."
+  );
+
+
+
+  /* FILE NAME */
+
+  const safe =
+    file.name.replace(
+      /[^a-zA-Z0-9._-]/g,
+      "_"
+    );
+
+
+
+  /* STORAGE PATH */
+
+  const path =
+    `${currentUser.id}/${Date.now()}_${safe}`;
+
+
+
+  /* UPLOAD FILE */
+
+  const up =
+    await sb.storage
+      .from("customer-files")
+      .upload(
+        path,
+        file,
+        {
+          upsert:false
+        }
+      );
+
+
+  if(up.error){
+
+    msg(
+      "requestMsg",
+      up.error.message,
+      "error"
+    );
+
+    return;
+  }
+
+
+
+  /* INSERT REQUEST */
+
+  const ins =
+    await sb
+      .from("requests")
+      .insert({
+
+        user_id:
+          currentUser.id,
+
+        service_id:
+          selectedServiceId,
+
+        file_path:
+          path,
+
+        remark:
+          remark,
+
+        delivery_type:
+          deliveryType,
+
+        delivery_address:
+          deliveryType === "Home Delivery"
+            ? deliveryAddress
+            : "",
+
+        delivery_pincode:
+          deliveryType === "Home Delivery"
+            ? deliveryPincode
+            : ""
+
+      });
+
+
+
+  /* DATABASE ERROR */
+
+  if(ins.error){
+
+    await sb.storage
+      .from("customer-files")
+      .remove([path]);
+
+
+    msg(
+      "requestMsg",
+      ins.error.message,
+      "error"
+    );
+
+    return;
+  }
+
+
+
+  /* RESET FORM */
+
+  $("workFile").value =
+    "";
+
+  $("customerRemark").value =
+    "";
+
+  $("deliveryType").value =
+    "Pickup";
+
+  $("deliveryAddress").value =
+    "";
+
+  $("deliveryPincode").value =
+    "";
+
+
+  toggleDeliveryFields();
+
+
+
+  msg(
+    "requestMsg",
+    "Request submitted successfully.",
+    "success"
+  );
+
+
+  await loadMyRequests();
+
 }
+
+
+
+/* =========================
+   CUSTOMER REQUESTS
+========================= */
 
 async function loadMyRequests(){
-  const {data,error}=await sb.from("requests").select("*, services(name)").eq("user_id",currentUser.id).order("created_at",{ascending:false});
-  if(error){$("myRequests").textContent=error.message;return}
-  if(!data.length){$("myRequests").innerHTML="<p class='muted'>No requests yet.</p>";return}
-  $("myRequests").innerHTML=`<div style="overflow:auto"><table><tr><th>Request ID</th><th>Service</th><th>Status</th><th>Remark</th><th>Date</th><th>File</th></tr>${data.map(r=>`<tr><td><b>${r.request_id}</b></td><td>${escapeHtml(r.services?.name||"-")}</td><td><span class="badge">${escapeHtml(r.status)}</span></td><td>${escapeHtml(r.remark||"-")}</td><td>${new Date(r.created_at).toLocaleDateString("en-IN")}</td><td><button class="link" onclick="downloadFile('${encodeURIComponent(r.file_path)}')">View</button></td></tr>`).join("")}</table></div>`;
+
+  const {data,error} =
+    await sb
+      .from("requests")
+      .select(
+        "*, services(name)"
+      )
+      .eq(
+        "user_id",
+        currentUser.id
+      )
+      .order(
+        "created_at",
+        {
+          ascending:false
+        }
+      );
+
+
+  if(error){
+
+    $("myRequests").textContent =
+      error.message;
+
+    return;
+  }
+
+
+  if(!data.length){
+
+    $("myRequests").innerHTML =
+      "<p class='muted'>No requests yet.</p>";
+
+    return;
+  }
+
+
+
+  $("myRequests").innerHTML = `
+
+    <div style="overflow:auto">
+
+      <table>
+
+        <tr>
+
+          <th>Request ID</th>
+
+          <th>Service</th>
+
+          <th>Status</th>
+
+          <th>Delivery</th>
+
+          <th>Address</th>
+
+          <th>Remark</th>
+
+          <th>Date</th>
+
+          <th>File</th>
+
+        </tr>
+
+
+        ${data.map(r => `
+
+          <tr>
+
+            <td>
+              <b>
+                ${escapeHtml(
+                  r.request_id
+                )}
+              </b>
+            </td>
+
+
+            <td>
+              ${escapeHtml(
+                r.services?.name || "-"
+              )}
+            </td>
+
+
+            <td>
+
+              <span class="badge">
+
+                ${escapeHtml(
+                  r.status
+                )}
+
+              </span>
+
+            </td>
+
+
+            <td>
+
+              <b>
+                ${escapeHtml(
+                  r.delivery_type ||
+                  "Pickup"
+                )}
+              </b>
+
+              <br>
+
+              ${r.delivery_pincode
+                ? "Pincode: " +
+                  escapeHtml(
+                    r.delivery_pincode
+                  )
+                : ""
+              }
+
+            </td>
+
+
+            <td>
+
+              ${escapeHtml(
+                r.delivery_address ||
+                "Shop Pickup"
+              )}
+
+            </td>
+
+
+            <td>
+
+              ${escapeHtml(
+                r.remark || "-"
+              )}
+
+            </td>
+
+
+            <td>
+
+              ${new Date(
+                r.created_at
+              ).toLocaleDateString(
+                "en-IN"
+              )}
+
+            </td>
+
+
+            <td>
+
+              <button
+                class="link"
+                onclick="downloadFile(
+                  '${encodeURIComponent(
+                    r.file_path
+                  )}'
+                )">
+
+                View
+
+              </button>
+
+            </td>
+
+          </tr>
+
+        `).join("")}
+
+      </table>
+
+    </div>
+
+  `;
+
 }
-async function downloadFile(encoded){const path=decodeURIComponent(encoded);const {data,error}=await sb.storage.from("customer-files").createSignedUrl(path,300);if(error)alert(error.message);else window.open(data.signedUrl,"_blank")}
+
+
+
+/* =========================
+   DOWNLOAD FILE
+========================= */
+
+async function downloadFile(encoded){
+
+  const path =
+    decodeURIComponent(
+      encoded
+    );
+
+
+  const {data,error} =
+    await sb.storage
+      .from("customer-files")
+      .createSignedUrl(
+        path,
+        300
+      );
+
+
+  if(error){
+
+    alert(
+      error.message
+    );
+
+  }else{
+
+    window.open(
+      data.signedUrl,
+      "_blank"
+    );
+
+  }
+
+}
+
+
+
+/* =========================
+   ADMIN PANEL
+========================= */
 
 async function loadAdmin(){
-  const {data,error}=await sb.from("requests").select("*, services(name), profiles(full_name,mobile)").order("created_at",{ascending:false});
-  if(error){$("adminRequests").textContent=error.message;return}
-  if(!data.length){$("adminRequests").innerHTML="<p class='muted'>No requests yet.</p>";return}
-  $("adminRequests").innerHTML=`<div style="overflow:auto"><table><tr><th>Request</th><th>Customer</th><th>Service</th><th>File</th><th>Status</th><th>Remark</th><th>Save</th></tr>${data.map(r=>`<tr>
-  <td><b>${r.request_id}</b><br><small>${new Date(r.created_at).toLocaleString("en-IN")}</small></td>
-  <td>${escapeHtml(r.profiles?.full_name||"-")}<br>${escapeHtml(r.profiles?.mobile||"-")}</td>
-  <td>${escapeHtml(r.services?.name||"-")}</td>
-  <td><button class="link" onclick="downloadFile('${encodeURIComponent(r.file_path)}')">Open</button></td>
-  <td><select id="st_${r.id}">${["Pending","Processing","Ready","Out for Delivery","Delivered","Cancelled"].map(x=>`<option ${x===r.status?"selected":""}>${x}</option>`).join("")}</select></td>
-  <td><input id="rm_${r.id}" value="${escapeHtml(r.remark||"")}" placeholder="Remark"></td>
-  <td><button onclick="updateRequest(${r.id})">Save</button></td>
-  </tr>`).join("")}</table></div>`;
+
+  const {data,error} =
+    await sb
+      .from("requests")
+      .select(
+        "*, services(name), profiles(full_name,mobile)"
+      )
+      .order(
+        "created_at",
+        {
+          ascending:false
+        }
+      );
+
+
+  if(error){
+
+    $("adminRequests").textContent =
+      error.message;
+
+    return;
+  }
+
+
+  if(!data.length){
+
+    $("adminRequests").innerHTML =
+      "<p class='muted'>No requests yet.</p>";
+
+    return;
+  }
+
+
+
+  $("adminRequests").innerHTML = `
+
+    <div style="overflow:auto">
+
+      <table>
+
+        <tr>
+
+          <th>Request</th>
+
+          <th>Customer</th>
+
+          <th>Service</th>
+
+          <th>File</th>
+
+          <th>Delivery</th>
+
+          <th>Address</th>
+
+          <th>Status</th>
+
+          <th>Remark</th>
+
+          <th>Save</th>
+
+        </tr>
+
+
+        ${data.map(r => `
+
+          <tr>
+
+
+            <!-- REQUEST -->
+
+            <td>
+
+              <b>
+                ${escapeHtml(
+                  r.request_id
+                )}
+              </b>
+
+              <br>
+
+              <small>
+
+                ${new Date(
+                  r.created_at
+                ).toLocaleString(
+                  "en-IN"
+                )}
+
+              </small>
+
+            </td>
+
+
+
+            <!-- CUSTOMER -->
+
+            <td>
+
+              ${escapeHtml(
+                r.profiles?.full_name ||
+                "-"
+              )}
+
+              <br>
+
+              ${escapeHtml(
+                r.profiles?.mobile ||
+                "-"
+              )}
+
+            </td>
+
+
+
+            <!-- SERVICE -->
+
+            <td>
+
+              ${escapeHtml(
+                r.services?.name ||
+                "-"
+              )}
+
+            </td>
+
+
+
+            <!-- FILE -->
+
+            <td>
+
+              <button
+                class="link"
+                onclick="downloadFile(
+                  '${encodeURIComponent(
+                    r.file_path
+                  )}'
+                )">
+
+                Open
+
+              </button>
+
+            </td>
+
+
+
+            <!-- DELIVERY -->
+
+            <td>
+
+              <b>
+
+                ${escapeHtml(
+                  r.delivery_type ||
+                  "Pickup"
+                )}
+
+              </b>
+
+              <br>
+
+              <small>
+
+                Pincode:
+                ${escapeHtml(
+                  r.delivery_pincode ||
+                  "-"
+                )}
+
+              </small>
+
+            </td>
+
+
+
+            <!-- ADDRESS -->
+
+            <td
+              style="
+                min-width:280px;
+                max-width:350px;
+              ">
+
+              ${escapeHtml(
+                r.delivery_address ||
+                "Shop Pickup"
+              )}
+
+            </td>
+
+
+
+            <!-- STATUS -->
+
+            <td>
+
+              <select
+                id="st_${r.id}">
+
+                ${[
+                  "Pending",
+                  "Processing",
+                  "Ready",
+                  "Out for Delivery",
+                  "Delivered",
+                  "Cancelled"
+                ].map(x => `
+
+                  <option
+                    ${x === r.status
+                      ? "selected"
+                      : ""}>
+
+                    ${x}
+
+                  </option>
+
+                `).join("")}
+
+              </select>
+
+            </td>
+
+
+
+            <!-- REMARK -->
+
+            <td>
+
+              <input
+                id="rm_${r.id}"
+                value="${escapeHtml(
+                  r.remark || ""
+                )}"
+                placeholder="Remark">
+
+            </td>
+
+
+
+            <!-- SAVE -->
+
+            <td>
+
+              <button
+                onclick="updateRequest(
+                  ${r.id}
+                )">
+
+                Save
+
+              </button>
+
+            </td>
+
+
+          </tr>
+
+        `).join("")}
+
+      </table>
+
+    </div>
+
+  `;
+
 }
+
+
+
+/* =========================
+   UPDATE STATUS
+========================= */
+
 async function updateRequest(id){
-  const status=$("st_"+id).value, remark=$("rm_"+id).value;
-  const {error}=await sb.from("requests").update({status,remark,updated_at:new Date().toISOString()}).eq("id",id);
-  if(error) alert(error.message); else {alert("Status updated");loadAdmin();}
+
+  const status =
+    $("st_"+id).value;
+
+
+  const remark =
+    $("rm_"+id).value;
+
+
+  const {error} =
+    await sb
+      .from("requests")
+      .update({
+
+        status:
+          status,
+
+        remark:
+          remark,
+
+        updated_at:
+          new Date()
+            .toISOString()
+
+      })
+      .eq(
+        "id",
+        id
+      );
+
+
+  if(error){
+
+    alert(
+      error.message
+    );
+
+  }else{
+
+    alert(
+      "Status updated"
+    );
+
+    await loadAdmin();
+
+  }
+
 }
+
 </script>
+
 </body>
 </html>
